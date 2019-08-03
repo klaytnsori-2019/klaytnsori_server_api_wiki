@@ -11,11 +11,23 @@ sudo yum install gcc-c++ make
 
 sudo yum install git
 
-Node install solidity, caver-js, express 
-npm install -g solc
-
-npm install caver-js
-
-npm install express --save
-
+In node,
+First you install express-generator -g
 npm install express-generator -g
+
+next
+express --view=pug application_name
+
+cd application_name
+npm install
+npm init
+
+Node install solidity, caver-js, mysql
+npm install -g solc
+npm install caver-js
+npm install mysql
+
+
+
+If you run server
+DEBUG=application_name:* npm start
