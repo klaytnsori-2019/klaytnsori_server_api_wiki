@@ -72,13 +72,10 @@ question.post('/insert_question', function(req,res,next){
   //caver에서 해당 block의 시간을 받아온다.
 
 
-  var q_id;
   //DB에 필요한 정보를 모두 저장 후 해당 질문의 id를 q_id에 저장.
 
-  var data = {
-    question_id : q_id
-  };
-  return res.json(result.successTrue(data));
+
+  return res.json(result.successTrue(rows));
 });
 
 /*
@@ -110,15 +107,7 @@ question.get('/show_question',function(req,res,next){
 },function(req,res,next){
   //DB에서 해당 question_id에 해당하는 내용을 모두 가져온다.
 
-  var data = {
-    question_title : ,
-    question_klay : ,
-    question_content : ,
-    question_date : ,
-    qusetion_email : ,
-    question_state :
-  };
-  return res.json(result.successTrue(data));
+  return res.json(result.successTrue(rows));
 });
 
 /*
@@ -288,8 +277,9 @@ question.post('/select_answer',function(req,res,next){
 
   //caver에서 server의 wallet에서 answer_id의 wallet으로 klay 전송
 
+  var q_state = 2;
   var data = {
-    question_state :
+    question_state : q_state
   };
   return res.json(result.successTrue(data));
 });

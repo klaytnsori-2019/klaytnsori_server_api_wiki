@@ -1,13 +1,6 @@
 var express = require('express');
 var mypage = express.Router();
 var result = require('./../../../../result');
-/*
-var myspl = require('mysql');
-var dbconfig = require('../../../../database.js');
-var connection = mysql.createConnection(dbconfig);
-*/
-//DB사용시 connection.connet();
-//DB사용 종료시 connection.end();
 
 /*
 *transaction API
@@ -78,14 +71,7 @@ mypage.get('/my_question_list', function(req,res,next){
 }, function(req,res,next){
   //DB에서 해당 유저의 질문을 가져옴
 
-  var data = {
-    question_title : ,
-    question_content : ,
-    question_klay : ,
-    category : ,
-    question_state :
-  };
-  return res.json(result.successTrue(data));
+  return res.json(result.successTrue(rows));
 });
 
 /*
@@ -114,12 +100,7 @@ mypage.get('/my_answer_list', function(req,res,next){
 }, function(req,res,next){
   //DB에서 해당 유저의 답변을 가져옴
 
-  var data = {
-    question_title : ,
-    question_state : ,
-    answer_content :
-  };
-  return res.json(result.successTrue(data));
+  return res.json(result.successTrue(rows));
 });
 
 /*
@@ -148,12 +129,7 @@ mypage.get('/my_like_list', function(req,res,next){
 }, function(req,res,next){
   //DB에서 해당 유저의 like를 가져옴
 
-  var data = {
-    question_title : ,
-    answer_content : ,
-    like_count :
-  };
-  return res.json(result.successTrue(data));
+  return res.json(result.successTrue(rows));
 });
 
 /*

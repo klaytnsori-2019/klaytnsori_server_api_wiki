@@ -36,14 +36,13 @@ membership.post('/login',function(req,res,next){
   function(req,res,next){
     var u_email = req.body.email;
     var u_pw = req.body.pw;
-    var _session = 1;
     //DB에서 u_email과 u_pw확인 후 session_id 부여 변수명은 _session
 
 
     //if(err) return res.json(result.successFalse(err));
   //  else {
       var data = {
-        "session_id" : _session
+        "email" : u_email
       };
       return res.json(result.successTrue(data));
   //  }
@@ -116,7 +115,7 @@ membership.post('/login',function(req,res,next){
 
       var data = {
         "email" : u_email,
-        "pw" : u_pw
+        "password" : u_pw
       };
       return res.json(result.successTrue(data));
     }
@@ -142,11 +141,9 @@ membership.post('/login',function(req,res,next){
 
   membership.get('find_pw', function(req,res){
     var _email = req.body.email;
-    var _pw;
     //DB에서 해당 email의 pw를 찾음.
 
-    var data = { password : _pw};
-    return res.json(result.successTrue(data));
+    return res.json(result.successTrue(rows));
   });
 
   /*
@@ -177,5 +174,77 @@ membership.post('/login',function(req,res,next){
     //DB에서 해당 session_id로 email을 확인한 후 pw를 변경
     return res.json({message:'Success to modify your password!'});
   });
+
+  /*
+  *Authorize_code API
+  *Request
+  *email : To authorize user's identity using random num
+  *Response
+  */
+  membership.post('/authorize_code', function(req,res,next){
+    var isValid = true;
+    var validationError = {
+      name : 'ValidationError',
+      errors = {}
+    };
+    if(!req.body.email){
+      isValid = false;
+      validationError.errors.email = {message : 'Email is empty'};
+    }
+    if(!isValid) return res.json(result.successFalse(validationError));
+    else next();
+  },function(req,res,next){
+    var authorize_text = "";
+    var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+    for (var i = 0; i < 6 ; i++){
+      authorize_text += possible.charAt(Math.floor(Math.random()*possible.length));
+    }
+
+    //email로 전송
+  });
+
+  /*
+  *Authorize_identity API
+  *Request
+  *email : To authorize user's identity using random num
+  *Response
+  *session_id : session -> prevent redundent login
+  */
+  membership.post('/Authorize_identity', function(req,res,next){
+    var isValid = true;
+    var validationError = {
+      name : 'ValidationError',
+      errors = {}
+    };
+    if(!req.body.email){
+      isValid = false;
+      validationError.errors.email = {message : 'Email is empty'};
+    }
+    if(!req.body.authorize_text){
+      isValid = false;
+      validationError.errors.authorize_text = {message : 'Authorize code is empty'};
+    }
+    if(!isValid) return res.json(result.successFalse(validationError));
+    else next();
+  },function(req,res,next){
+    //DB에서 해당 email로 보낸 인증번호를 가져와 문자열 비교.
+
+    var string1 = req.body.authorize_text;
+    var string2;
+    if(string1 == string2){
+      //session 아이디 반환
+      return res.json(result.successTrue(rows));
+    }
+    else {
+      var codeError = {
+        "name" : 'Authorize code Error',
+        "errors":{}
+      };
+      codeError.errors = {message: 'Diffrent authorize text'};
+      return res.json(result.successFalse(codeError));
+    }
+  });
+
 
 module.exports = membership;
