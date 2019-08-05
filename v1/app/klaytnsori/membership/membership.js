@@ -211,7 +211,7 @@ membership.post('/login',function(req,res,next){
   *Response
   *session_id : session -> prevent redundent login
   */
-  membership.post('/Authorize_identity', function(req,res,next){
+  membership.post('/authorize_identity', function(req,res,next){
     var isValid = true;
     var validationError = {
       name : 'ValidationError',
