@@ -185,7 +185,7 @@ membership.post('/login',function(req,res,next){
     var isValid = true;
     var validationError = {
       name : 'ValidationError',
-      errors = {}
+      errors : {}
     };
     if(!req.body.email){
       isValid = false;
@@ -215,7 +215,7 @@ membership.post('/login',function(req,res,next){
     var isValid = true;
     var validationError = {
       name : 'ValidationError',
-      errors = {}
+      errors : {}
     };
     if(!req.body.email){
       isValid = false;
