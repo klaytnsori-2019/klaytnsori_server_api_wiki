@@ -1,7 +1,8 @@
 var express = require('express');
 var membership = express.Router();
 var result = require('./../../../../result.js');
-
+var Caver = require('caver-js');
+var caver = new Caver('https://api.baobab.klaytn.net:8651/')
 /*
 *Log-in API
 *Request
@@ -36,6 +37,7 @@ membership.post('/login',function(req,res,next){
   function(req,res,next){
     var u_email = req.body.email;
     var u_pw = req.body.pw;
+    caver.klay.accounts.wallet.add('0x04e413304287e5e2600b382a9e5060161c5ca73244dcc21b84381d51a21fec1e');
     //DB에서 u_email과 u_pw확인 후 session_id 부여 변수명은 _session
 
 
@@ -60,7 +62,7 @@ membership.post('/login',function(req,res,next){
     var logout_session = req.body.session_id;
 
     //DB에서 해당 session_id 클리어하고 u_emil로 email 반환
-
+    caver.klay.accounts.wallet.remove('0x04e413304287e5e2600b382a9e5060161c5ca73244dcc21b84381d51a21fec1e')
     var data = {message : 'Thanks to use our service'};
     return res.json(result.successTrue(data));
   });
@@ -104,18 +106,19 @@ membership.post('/login',function(req,res,next){
     if(_ok)
     {
       //caver에서 wallet 생성 후 privateKey와 Address를 돌려줌
-    /*
       const account = caver.klay.accounts.create();
-      caver.klay.accounts.wallet.add('account.privateKey', 'account.address');
       var _address = account.address;
       var _privateK = account.privateKey;
-  */
+    //  caver.klay.accounts.wallet.add(_address, _privateK);
+
       //DB에 추가 email,password, address, privatekey를 저장
 
 
       var data = {
         "email" : u_email,
-        "password" : u_pw
+        "password" : u_pw,
+        "wallet_address" : _address,
+        "privateK" : _privateK
       };
       return res.json(result.successTrue(data));
     }
@@ -211,7 +214,7 @@ membership.post('/login',function(req,res,next){
   *Response
   *session_id : session -> prevent redundent login
   */
-  membership.post('/authorize_identity', function(req,res,next){
+  membership.post('/Authorize_identity', function(req,res,next){
     var isValid = true;
     var validationError = {
       name : 'ValidationError',
