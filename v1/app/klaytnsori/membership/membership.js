@@ -37,17 +37,9 @@ membership.post('/login',function(req,res,next){
   function(req,res,next){
     var u_email = req.body.email;
     var u_pw = req.body.pw;
-    caver.klay.accounts.wallet.add('0x04e413304287e5e2600b382a9e5060161c5ca73244dcc21b84381d51a21fec1e');
-    //DB에서 u_email과 u_pw확인 후 session_id 부여 변수명은 _session
+    //DB에서 u_email과 u_pw확인 후 맞다면 email 반환
 
-
-    //if(err) return res.json(result.successFalse(err));
-  //  else {
-      var data = {
-        "email" : u_email
-      };
-      return res.json(result.successTrue(data));
-  //  }
+      return res.json(result.successTrue(rows));
   });
 
   /*
@@ -203,7 +195,10 @@ membership.post('/login',function(req,res,next){
     for (var i = 0; i < 6 ; i++){
       authorize_text += possible.charAt(Math.floor(Math.random()*possible.length));
     }
-
+    var data = {
+      "authorize_text" : authorize_text
+    };
+    return res.json(result.successTrue(data));
     //email로 전송
   });
 
@@ -214,7 +209,7 @@ membership.post('/login',function(req,res,next){
   *Response
   *session_id : session -> prevent redundent login
   */
-  membership.post('/Authorize_identity', function(req,res,next){
+  membership.post('/authorize_identity', function(req,res,next){
     var isValid = true;
     var validationError = {
       name : 'ValidationError',
@@ -237,6 +232,8 @@ membership.post('/login',function(req,res,next){
     var string2;
     if(string1 == string2){
       //session 아이디 반환
+
+      caver.klay.accounts.wallet.add('u_account_address');
       return res.json(result.successTrue(rows));
     }
     else {
