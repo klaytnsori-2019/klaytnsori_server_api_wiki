@@ -54,7 +54,9 @@ membership.post('/login',function(req,res,next){
     var logout_session = req.body.session_id;
 
     //DB에서 해당 session_id 클리어하고 u_emil로 email 반환
-    caver.klay.accounts.wallet.remove('0x04e413304287e5e2600b382a9e5060161c5ca73244dcc21b84381d51a21fec1e')
+
+    var u_account_address;
+    caver.klay.accounts.wallet.remove('u_account_address')
     var data = {message : 'Thanks to use our service'};
     return res.json(result.successTrue(data));
   });
