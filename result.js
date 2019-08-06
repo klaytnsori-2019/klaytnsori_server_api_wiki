@@ -12,21 +12,22 @@ result.successFalse = function(err, message){
   return{
     result:false,
     message:message,
-  //  errors:(err)? result.parseError(err):null,
+    errors:(err)? result.parseError(err):null,
   };
 };
-/*
+
 result.parseError = function(errors){
   var parsed = {};
   if(errors.name == 'ValidationError'){
     for(var name in errors.errors){
-      var errorname = error.errors[name];
+      var errorname = errors.errors[name];
       parsed[name] = { message: errorname.message};
     }
+    return parsed;
   }
   else{
     parsed.unhandled = errors;
   }
 };
-*/
+
 module.exports = result;
