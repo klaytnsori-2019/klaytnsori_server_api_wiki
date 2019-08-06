@@ -154,8 +154,8 @@ mypage.get('/my_remain_klay', function(req,res,next){
 }, function(req,res,next){
   //DB에서 해당 유저의 wallet의 정보를 가져옴
 
-
-  var u_klay = caver.klay.getBalance('0xe0B15b8554141720417239F682BbFcF930aa0b0C');
+  var u_account_address;
+  var u_klay = caver.klay.getBalance('u_account_address');
   //큰 따음표일 수 있다.
 
   var data = {
