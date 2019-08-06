@@ -13,9 +13,8 @@ var caver = new Caver('https://api.baobab.klaytn.net:8651/');
 */
 question.get('/category', function(req,res,next){
   //DB에서 category관련 data를 받아서 출력
-  klaytnsoridb.query('SQL', function(err, rows, fields){
-    res.json(rows);
-  });
+
+  res.json(result.successTrue(rows));
 });
 
 /*
@@ -143,7 +142,7 @@ question.get('/question_list',function(req,res,next){
 }, function(req,res,next){
   var q_date;
   //DB에서 시간을 꺼내와서 현재시간과 비교 후 남은 시간을 보내줌
-  var present_time = new Date(now()*1000);
+  var current_time = new Date().getTime();
   var remain_date;
 
   return res.json(result.successTrue(rows));
