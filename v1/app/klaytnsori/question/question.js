@@ -69,11 +69,10 @@ question.post('/insert_question', function(req,res,next){
   //DB에서 해당 session_id로 email찾고 해당 user의 지갑주소를 가져온다.
 
   //caver에서 호출자의 wallet에서 server의 wallet으로 klay전송
-
-  var b_time;
-  //caver에서 해당 block의 시간을 받아온다.
-
-
+  var b_num= caver.klay.getBlockNumber();
+  var b_time = caver.klay.getBlock(b_num).timestamp;
+  b_time = parseInt(b_time, 16);
+  var trans_time = new Date(b_time * 1000);
   //DB에 필요한 정보를 모두 저장 후 해당 질문의 id를 q_id에 저장.
 
 
@@ -144,17 +143,10 @@ question.get('/question_list',function(req,res,next){
 }, function(req,res,next){
   var q_date;
   //DB에서 시간을 꺼내와서 현재시간과 비교 후 남은 시간을 보내줌
+  var present_time = new Date(now()*1000);
   var remain_date = ;
 
-  var data = {
-    question_id : ,
-    category : ,
-    question_title : ,
-    question_reamin_date : remain_date,
-    question_klay : ,
-    question_state :
-  };
-  return res.json(result.successTrue(data));
+  return res.json(result.successTrue(rows));
 });
 
 /*
@@ -279,7 +271,7 @@ question.post('/select_answer',function(req,res,next){
 
   //caver에서 server의 wallet에서 answer_id의 wallet으로 klay 전송
 
-  var q_state = 2;
+  var q_state = true;
   var data = {
     question_state : q_state
   };

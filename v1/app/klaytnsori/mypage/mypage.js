@@ -30,18 +30,14 @@ mypage.get('/transaction', function(req,res,next){
   else next();
 }, function(req,res,next){
   var u_wallet_address;
+  var b_list = new Array();
   //DB에서 해당 session_id로 들어온 사용자의 email을 확인 후 caver로 거래 내역 조회
 
-  var u_klay;
-  var u_trans_time;
-  var u_trans_content;
-  var u_recipient_address;
-  var data = {
-    klay : u_klay,
-    trans_time : u_trans_time,
-    trans_content : u_trans_content,
-    recipient_address : u_recipient_address
-  };
+  var data = new Array();
+  for(var i = 0 ; i < b_list.length ; i++)
+  {
+    data[i] = caver.klay.getBlock(b_list[i]);
+  }
   return res.json(result.successTrue(data));
 });
 
