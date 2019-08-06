@@ -144,7 +144,7 @@ question.get('/question_list',function(req,res,next){
   var q_date;
   //DB에서 시간을 꺼내와서 현재시간과 비교 후 남은 시간을 보내줌
   var present_time = new Date(now()*1000);
-  var remain_date = ;
+  var remain_date;
 
   return res.json(result.successTrue(rows));
 });
