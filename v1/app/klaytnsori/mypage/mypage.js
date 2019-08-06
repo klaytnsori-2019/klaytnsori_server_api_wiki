@@ -1,6 +1,8 @@
 var express = require('express');
 var mypage = express.Router();
 var result = require('./../../../../result');
+var Caver = require('caver-js');
+var caver = new Caver('https://api.baobab.klaytn.net:8651/');
 
 /*
 *transaction API
@@ -157,8 +159,7 @@ mypage.get('/my_remain_klay', function(req,res,next){
   //DB에서 해당 유저의 wallet의 정보를 가져옴
 
 
-  var u_wallet_address;
-  //var u_klay = caver.klay.getBalance('u_wallet_address');
+  var u_klay = caver.klay.getBalance('0xe0B15b8554141720417239F682BbFcF930aa0b0C');
   //큰 따음표일 수 있다.
 
   var data = {
@@ -167,4 +168,4 @@ mypage.get('/my_remain_klay', function(req,res,next){
   return res.json(result.successTrue(data));
 });
 
-module.epxorts = mypage;
+module.exports = mypage;

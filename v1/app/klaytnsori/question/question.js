@@ -1,6 +1,8 @@
 var express = require('express');
 var question = express.Router();
 var result = require('./../../../../result');
+var Caver = require('caver-js');
+var caver = new Caver('https://api.baobab.klaytn.net:8651/');
 
 /*
 *category API
