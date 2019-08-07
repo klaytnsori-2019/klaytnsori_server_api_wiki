@@ -5,7 +5,11 @@ var Caver = require('caver-js');
 var caver = new Caver('https://api.baobab.klaytn.net:8651/');
 
 var klaytnsori_testContract = new caver.klay.Contract([{"constant":true,"inputs":[],"name":"getBalance","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"test_owner","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_questionerAddress","type":"address"},{"name":"_value","type":"uint256"}],"name":"transfer","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[],"name":"deposit","outputs":[],"payable":true,"stateMutability":"payable","type":"function"},{"constant":false,"inputs":[{"name":"_address","type":"address"},{"name":"_value","type":"uint256"}],"name":"setQuestionerBalance","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"_address","type":"address"}],"name":"getQuestionerBalance","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"inputs":[],"payable":false,"stateMutability":"nonpayable","type":"constructor"}],'0x71EFcC18cC1baBEF01467dBD9e72286D802a272B');
-
+/*
+function fetchklay(){
+  return klaytnsori_testContract.methods.getBalance().call();
+}
+*/
 /*
 *category API
 *Request
@@ -13,8 +17,20 @@ var klaytnsori_testContract = new caver.klay.Contract([{"constant":true,"inputs"
 *Response
 *category list - Bring all category list(data type int) at DB
 */
+/*
+async function makejson(){
+  var _klay = await fetchklay().then((result)=>{ _klay = result;});
+  return _klay;
+}
+*/
+//fetch("https://http://15.164.129.118:3004/v1/app/klaytnsori/question/category").then((response) => {return res.json(result.successTrue(response));})
 question.get('/category', function(req,res,next){
   //DB에서 category관련 data를 받아서 출력
+  var k1 = 1;
+klaytnsori_testContract.methods.getBalance().call().then((result)=>{
+  var data = {klay : result, d : k1};
+  res.json(data);
+});
 
 });
 
@@ -67,12 +83,14 @@ question.post('/insert_question', function(req,res,next){
   var u_sid = req.body.session_id;
   var u_address;
   //DB에서 해당 session_id로 email찾고 해당 user의 지갑주소를 가져온다.
-
-  //caver에서 호출자의 wallet에서 server의 wallet으로 klay전송
+  var q_klay = req.body.question_klay;
+  var _gas = 300000;
+  klaytnsori_testContract.methods.deposit().send({from : u_address, gas : _gas, value : q_klay});
   var b_num= caver.klay.getBlockNumber();
   var b_time = caver.klay.getBlock(b_num).timestamp;
   b_time = parseInt(b_time, 16);
   var trans_time = new Date(b_time * 1000);
+  //이 부분에서 생각해야하는 것. getBlockNumber을 호출하게 되면 저장한 블록의 번호를 가져오는지!이게 가장 중요한 문제.
   //DB에 필요한 정보를 모두 저장 후 해당 질문의 id를 q_id에 저장.
 
 
@@ -270,7 +288,9 @@ question.post('/select_answer',function(req,res,next){
   //DB에서 session_id로 들어온 email과 answer_id로 들어온 id의 wallet을 찾는다.
 
   //caver에서 server의 wallet에서 answer_id의 wallet으로 klay 전송
-
+  var q_u_account_address;
+  var q_klay;
+  klaytnsori_testContract.methods.transfer(q_u_account_address, q_klay).send({from : q_u_address, gas : _gas, value : q_klay});
   var q_state = true;
   var data = {
     question_state : q_state

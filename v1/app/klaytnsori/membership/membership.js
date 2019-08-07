@@ -12,8 +12,6 @@ var caver = new Caver('https://api.baobab.klaytn.net:8651/')
 *session_id : session -> prevent redundent login
 */
 membership.post('/login',function(req,res,next){
-  console.log('login');
-
   var isValid = true;
   var validationError = {
       "name" : 'ValidationError',
@@ -36,10 +34,10 @@ membership.post('/login',function(req,res,next){
   },
   function(req,res,next){
     var u_email = req.body.email;
-    var u_pw = req.body.pw;
+    var u_pw = req.body.password;
     //DB에서 u_email과 u_pw확인 후 맞다면 email 반환
 
-      return res.json(result.successTrue(rows));
+    return res.json(result.successTrue(rows));
   });
 
   /*
