@@ -13,24 +13,7 @@ var klaytndb = mysql.createConnection({
     database: 'klaytndb'
 
 });
-
-var nodemailer = require('nodemailer');
-var transporter = nodemailer.createTransport({
-  service:'gmail',
-  auth:{
-    user : 'klaytnsori@gmail.com',
-    pass : 'klaytnsori2019'
-  }
-});
-var mailOption = function(_email, _text){
-  return {
-    from : 'tyzlddy@gmail.com',
-    to : _email,
-    subject: 'nodemailer test',
-    text : _text
-  };
-};
-//var mail = require('./../../../../mail.js');
+var mail = require('./../../../../mail.js');
 
 /*
 *Log-in API
@@ -262,7 +245,7 @@ membership.post('/authorize_code', function (req, res, next) {
         "email" : u_email,
         "authorize_text": authorize_text
     };
-    transporter.sendMail(mailOption(u_email,authorize_text), function(err, info){
+    mail.transporter.sendMail(mail.mailOption(u_email,authorize_text), function(err, info){
       if(err){
         console.error('Send Mail error : ', err);
       }
