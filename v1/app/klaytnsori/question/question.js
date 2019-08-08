@@ -17,20 +17,8 @@ function fetchklay(){
 *Response
 *category list - Bring all category list(data type int) at DB
 */
-/*
-async function makejson(){
-  var _klay = await fetchklay().then((result)=>{ _klay = result;});
-  return _klay;
-}
-*/
-//fetch("https://http://15.164.129.118:3004/v1/app/klaytnsori/question/category").then((response) => {return res.json(result.successTrue(response));})
 question.get('/category', function(req,res,next){
   //DB에서 category관련 data를 받아서 출력
-  var k1 = 1;
-klaytnsori_testContract.methods.getBalance().call().then((result)=>{
-  var data = {klay : result, d : k1};
-  res.json(data);
-});
 
 });
 
@@ -136,6 +124,7 @@ question.get('/show_question',function(req,res,next){
 *sort_num : Not essentially request. division questions using sort_method
 *keyword : Not essentially request. division questions using keyword
 *question_state : Essentially request. division questions using question_state
+*select_enable : if question_state is false, essentially request. division questions using select_enable
 *Response
 *question_id : return question's id
 *category : return category
@@ -155,16 +144,35 @@ question.get('/question_list',function(req,res,next){
     isValid = false;
     validationError.errors.question_state = { message : '404 Not Found'};
   }
-
+  if(req.query.question_state == false)
+  {
+    if(!req.query.select_enable)
+    {
+      isValid = false;
+      validationError.errors.question_state = { message : '404 Not Found'};
+    }
+  }
   if(!isValid) return res.json(result.successFalse(validationError));
   else next();
 }, function(req,res,next){
-  var q_date;
-  //DB에서 시간을 꺼내와서 현재시간과 비교 후 남은 시간을 보내줌
+  var _enable = req.body.select_enable;
   var current_time = new Date().getTime();
-  var remain_date;
+  var date_limit = 604800;
+  if(question_state){
 
-  return res.json(result.successTrue(rows));
+
+    return res.json(result.successTrue(rows));
+  }
+  else{
+    if(select_enable){
+
+      return res.json(result.successTrue(rows));
+    }
+    else{
+
+      return res.json(result.successTrue(rows));
+    }
+  }
 });
 
 /*
@@ -290,6 +298,7 @@ question.post('/select_answer',function(req,res,next){
   //caver에서 server의 wallet에서 answer_id의 wallet으로 klay 전송
   var q_u_account_address;
   var q_klay;
+  //밑에 send할 때 보내는 거 질문.
   klaytnsori_testContract.methods.transfer(q_u_account_address, q_klay).send({from : q_u_address, gas : _gas, value : q_klay});
   var q_state = true;
   var data = {
