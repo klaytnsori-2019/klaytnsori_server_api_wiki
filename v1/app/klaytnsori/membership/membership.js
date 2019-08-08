@@ -24,8 +24,6 @@ var mail = require('./../../../../mail.js');
 *session_id : session -> prevent redundent login
 */
 membership.post('/login', function (req, res, next) {
-    console.log('login');
-
     var isValid = true;
     var validationError = {
         "name": 'ValidationError',
@@ -43,18 +41,40 @@ membership.post('/login', function (req, res, next) {
     else next();
 },
  function (req, res) {
-     var u_email = req.body.email;
-     var u_pw = req.body.password;
-     var sql = "SELECT email FROM userInfo WHERE email = ? AND password = ?";
-     var params = [u_email, u_pw]
-     klaytndb.connect();
-     klaytndb.query(sql, params, function (err, result, fields) {
+   var u_email = req.body.email;
+   var u_pw = req.body.password; //DB에서 u_email과 u_pw확인 후 맞다면 email 반환
+  // klaytndb.connect();
+   var sql = "SELECT email FROM userInfo WHERE email = ? AND password = ?";
+   var params = [u_email, u_pw];
+  // var _ok = false;
+   klaytndb.query(sql, params, function (err, result, fields) {
+       if (err) throw err;
+      // else _ok != _ok;
+   });
+
+     var sql2 = "SELECT count(*) as total FROM userSession";
+     klaytndb.query(sql2, function (err, result, fields) {
          if (err) throw err;
-         return res.json(result);
+         else{
+            result[0].total = result[0].total + 1;
+           var sql3 = "INSERT INTO userSession (session_id ,email) VALUES(?, ?)";
+           var params3 = [result[0].total, u_email];
+           klaytndb.query(sql3, params3, function (err, result, fields) {
+             if (err) throw err;
+             else{
+               console.log("success");
+               return res.send();
+             }
+           });
+         }
      });
-     var _address;
-     var _privateK;
-     caver.klay.accounts.wallet.add('_address', '_privateK');
+
+
+
+  //   klaytndb.end();
+     //var _address;
+     //var _privateK;
+     //caver.klay.accounts.wallet.add('_address', '_privateK');
  });
 
 /*
