@@ -3,6 +3,7 @@ var mypage = express.Router();
 var result = require('./../../../../result');
 var Caver = require('caver-js');
 var caver = new Caver('https://api.baobab.klaytn.net:8651/');
+var db = require('./../../../../database.js');
 
 /*
 *transaction API
@@ -58,18 +59,31 @@ mypage.get('/my_question_list', function(req,res,next){
     name : 'ValidationError',
     errors : {}
   };
-
   if(!req.query.session_id){
     isVlid = false;
     validationError.errors.session_id = { message : 'Session Error'};
   }
-
   if(!isValid) return res.json(result.successFalse(validationError));
   else next();
 }, function(req,res,next){
-  //DB에서 해당 유저의 질문을 가져옴
-
-  return res.json(result.successTrue(rows));
+  db.klaytndb.connect();
+  var session_id = req.query.session_id;
+  var params = [session_id];
+  var sql = "SELECT email FROM userSession WHERE session_id = ?";
+  db.klaytndb.query(sql, params, function(err, rows, fields){
+    if(err) return res.json(result.successFalse(err));
+    else{
+      var params2 = [result[0].email];
+      var sql2 = "SELECT question.question_title, question.question_content, question.klay, category.category FROM question JOIN category WHERE question.email = ? AND question.category_num = category.category_num";
+      db.klaytndb.query(sql2, params2, function(err, rows, fields){
+        if (err) return res.json(result.successFalse(err));
+        else{
+          db.klaytndb.end();
+          return res.json(result.successTrue(rows));
+        }
+      });
+    }
+  });
 });
 
 /*
@@ -96,9 +110,24 @@ mypage.get('/my_answer_list', function(req,res,next){
   if(!isValid) return res.json(result.successFalse(validationError));
   else next();
 }, function(req,res,next){
-  //DB에서 해당 유저의 답변을 가져옴
-
-  return res.json(result.successTrue(rows));
+  db.klaytndb.connect();
+  var session_id = req.query.session_id;
+  var params = [session_id];
+  var sql = "SELECT email FROM userSession WHERE session_id = ?";
+  klaytndb.query(sql, params, function(err, rows, fields){
+  if (err) return res.json(result.successFalse(err));
+  else{
+    var params2 = [result[0].email];
+    var sql2 = "SELECT question.question_title ,answer.answer_content, answer.is_selected FROM question JOIN answer ON answer.email = ?";
+    db.klaytndb.query(sql2, params2, function(err, rows, fields){
+      if(err) return res.json(result.successFalse(err));
+      else{
+        db.klaytndb.end();
+        return res.json(result.successTrue(rows));
+      }
+    });
+   }
+  });
 });
 
 /*
@@ -125,9 +154,24 @@ mypage.get('/my_like_list', function(req,res,next){
   if(!isValid) return res.json(result.successFalse(validationError));
   else next();
 }, function(req,res,next){
-  //DB에서 해당 유저의 like를 가져옴
-
-  return res.json(result.successTrue(rows));
+  db.klaytndb.connect();
+  var session_id = req.query.session_id;
+  var params = [session_id];
+  var sql = "SELECT email FROM userSession WHERE session_id = ?";
+  db.klaytndb.query(sql, params, function(err, rows, fields){
+    if(err) return res.json(result.successFalse(err));
+    else{
+      var params2 = [result[0].email];
+      var sql2 = "SELECT question_num, answer_num FROM userLike WHERE email = ?";
+      db.klaytndb.query(sql2, params2, function(err, rows, fields){
+        if(err) return res.json(result.successFalse(err));
+        else{
+          db.klaytndb.end();
+          return res.json(result.successTrue(rows));
+        }
+      });
+     }
+  });
 });
 
 /*
@@ -152,16 +196,29 @@ mypage.get('/my_remain_klay', function(req,res,next){
   if(!isValid) return res.json(result.successFalse(validationError));
   else next();
 }, function(req,res,next){
-  //DB에서 해당 유저의 wallet의 정보를 가져옴
-
-  var u_account_address;
-  var u_klay = caver.klay.getBalance('u_account_address');
-  //큰 따음표일 수 있다.
-
-  var data = {
-    klay : u_klay
-  };
-  return res.json(result.successTrue(data));
+  db.klaytndb.connect();
+  var session_id = req.query.session_id;
+  var params = [session_id];
+  var sql = "SELECT email FROM userSession WHERE session_id = ?";
+  db.klaytndb.query(sql, params, function(err, rows, fields){
+    if(err) return res.json(result.successFalse(err));
+    else{
+      var params2 = [result[0].email];
+      var sql2 = "SELECT wallet_address FROM userInfo WHERE email = ?";
+      db.klaytndb.query(sql2, params2, function(err, rows, fields){
+        if(err) return res.json(result.successFalse(err));
+        else{
+          var u_account_address = rows[0].wallet_address;
+          var u_klay = caver.klay.getBalance('u_account_address');
+          var data = {
+            klay : u_klay
+          };
+          db.klaytndb.end();
+          return res.json(result.successTrue(data));
+        }
+      });
+     }
+  });
 });
 
 module.exports = mypage;
