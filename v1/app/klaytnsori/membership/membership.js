@@ -34,12 +34,17 @@ membership.post('/login', function(req, res, next){
  function(req, res){
    var u_email = req.body.email;
    var u_pw = req.body.password;
-   db.klaytndb.connect();
+   //db.klaytndb.connect();
    var params = [u_email, u_pw];
    db.klaytndb.query("SELECT private_key FROM userInfo WHERE email = ? AND password = ?", params, function(err, rows, fields){
        if (err) return res.json(result.successFalse(err));
        else{
-         caver.klay.accounts.wallet.add(result[0].private_key);
+         caver.klay.accounts.wallet.add(rows[0].private_key);
+         var params4 = [u_email];
+         var sql4 = "DELETE FROM userSession WHERE email = ?";
+         db.klaytndb.query(sql4, params4, function (err, result, fields) {
+                 if (err) console.log(err);
+          });
        }
    });
    db.klaytndb.query("SELECT MAX(session_id) as max FROM userSession", function(err, rows, fields){
@@ -53,7 +58,6 @@ membership.post('/login', function(req, res, next){
            db.klaytndb.query("SELECT session_id FROM userSession WHERE email = ?", u_email, function(err, rows, fields){
              if(err) return res.json(result.successFalse(err));
              else{
-               db.klaytndb.end();
                return res.json(result.successTrue(rows));
              }
             });
@@ -72,9 +76,9 @@ membership.post('/login', function(req, res, next){
 */
 membership.post('/logout', function (req, res) {
     var logout_session = req.body.session_id;
-    db.klaytndb.connect();
+    //db.klaytndb.connect();
     var params = [logout_session];
-    var sql1 = "SELECT wallet_address FROM userInfor WHERE email = (SELECT email FROM userSession WHERE session_id = ?)"
+    var sql1 = "SELECT wallet_address FROM userInfo WHERE email = (SELECT email FROM userSession WHERE session_id = ?)"
     var sql2 = "DELETE FROM userSession WHERE session_id = ?";
     db.klaytndb.query(sql1, params, function(err, rows, field){
       if(err) return res.json(result.successFalse(err));
@@ -86,7 +90,7 @@ membership.post('/logout', function (req, res) {
       if(err) return res.json(result.successFalse(err));
       else{
         var data = { message: 'Thanks to use our service' };
-        db.klaytndb.end();
+        //db.klaytndb.end();
         return res.json(result.successTrue(data));
       }
     });
@@ -129,61 +133,29 @@ membership.post('/signup', function(req, res, next){
     var u_email = req.body.email;
     var u_pw = req.body.password;
     var u_nick = req.body.nickname;
-    var _ok = true;
-    db.klaytndb.connect();
     var params = [u_email]
     var sql = "SELECT email FROM userInfo WHERE email = ?";
-    klaytndb.query(sql, params, function(err, rows, fields){
+    db.klaytndb.query(sql, params, function(err, rows, fields){
         if (err) return res.json(result.successFalse(err));
         else{
           if(rows[0].email == u_email){
-            _ok != _ok;
+            var emailError = {
+                "name": 'email 중복',
+                "errors": {}
+            };
+            emailError.errors = { message: 'Another user is using same email' };
+            return res.json(result.successFalse(emailError));
+          }
+          else{
+            var data = {
+              email : u_email,
+              password : u_pw,
+              nickname : u_nick
+            };
+            return res.json(result.successTrue(data));
           }
         }
     });
-    if(!_ok){
-      var emailError = {
-          "name": 'email 중복',
-          "errors": {}
-      };
-      emailError.errors = { message: 'Another user is using same email' };
-      db.klaytndb.end();
-      return res.json(result.successFalse(emailError));
-    }
-    else{
-      db.klaytndb.end();
-      var data = {
-        email : u_email,
-        password : u_pw,
-        nickname : u_nick
-      };
-      return res.json(result.successTrue(data));
-    }
-    /*
-    if (_ok) {
-        var account = caver.klay.accounts.create();
-        var _address = account.address;
-        var _privateK = account.privateKey;
-        var params = [u_email, u_pw, u_nick, _address, _privateK]
-        var sql = "INSERT INTO userInfo (email, password, nickname, wallet_address, private_key) VALUES (?, ?, ?, ?, ?)";
-        db.klaytndb.query(sql, params, function(err, rows, fields){
-            if (err) return res.json(result.successFalse(err));
-        });
-        var data = {
-            "email": u_email
-        };
-        db.klaytndb.end();
-        return res.json(result.successTrue(data));
-    }
-    else {
-        var emailError = {
-            "name": 'email 중복',
-            "errors": {}
-        };
-        emailError.errors = { message: 'Another user is using same email' };
-        db.klaytndb.end();
-        return res.json(result.successFalse(emailError));
-    }*/
 });
 
 /*
@@ -293,15 +265,16 @@ membership.post('/authorize_code', function (req, res, next) {
         "nickname" : u_nick,
         "authorize_text": authorize_text
     };
-    mail.transporter.sendMail(mail.mailOption(u_email,authorize_text), function(err, info){
-      if(err){
-        console.error('Send Mail error : ', err);
-      }
-      else {
-        consile.log('Message sent : ', info);
+    var params2 = [u_email, authorize_text];
+    var sql2 = "INSERT INTO userAuth (email, code) VALUES (?, ?)";
+    db.klaytndb.query(sql2, params2, function(err, rows, fields){
+      if (err) return res.json(result.successFalse(err));
+      else{
+        mail.transporter.sendMail(mail.mailOption(u_email,authorize_text), function(err, info){
+            return res.json(result.successTrue(data));
+        });
       }
     });
-    return res.json(result.successTrue(data));
 });
 
 /*
@@ -355,21 +328,27 @@ membership.post('/authorize_identity', function (req, res, next) {
         var sql = "INSERT INTO userInfo (email, password, nickname, wallet_address, private_key) VALUES (?, ?, ?, ?, ?)";
         db.klaytndb.query(sql, params, function(err, rows, fields){
             if (err) return res.json(result.successFalse(err));
-            else{
-              var data = {};
-              db.klaytndb.end();
-              return res.json(result.successTrue(data));
-            }
         });
       }
       else{
+        /*
         var codeError = {
             "name": 'Authorize code Error',
             "errors": {}
         };
-        codeError.errors = { message: 'Diffrent authorize text' };
+        codeError.errors = { message: 'Diffrent authorize text' };*/
         return res.json(result.successFalse(codeError));
       }
+    }
+  });
+  var sql1 = "DELETE FROM userAuth WHERE email = ?";
+  var params1 = [u_email];
+  db.klaytndb.query(sql1, params1, function(err, rows, fields){
+    if (err) return res.json(result.successFalse(err));
+    else{
+      var data = {};
+      db.klaytndb.end();
+      return res.json(result.successTrue(data));
     }
   });
 });
