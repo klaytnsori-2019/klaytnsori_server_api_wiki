@@ -18,16 +18,11 @@ result.successFalse = function(err, message){
 
 result.parseError = function(errors){
   var parsed = {};
-  if(errors.name == 'ValidationError'){
-    for(var name in errors.errors){
-      var errorname = errors.errors[name];
-      parsed[name] = { message: errorname.message};
-    }
-    return parsed;
+  for(var name in errors.errors){
+    var errorname = errors.errors[name];
+    parsed[name] = { message: errorname.message};
   }
-  else{
-    parsed.unhandled = errors;
-  }
+  return parsed;
 };
 
 module.exports = result;
