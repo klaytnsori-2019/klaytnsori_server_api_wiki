@@ -1,7 +1,7 @@
 var express = require('express');
-var path = require('path');
-var app = express();
+var v1 = express.Router();
+var klaytnsori = require('./app/klaytnsori/klaytnsori');
 
-app.use('/v1/app/klaytnsori', require('v1/klaytnsori.js'));
+v1.use('/app/klaytnsori', klaytnsori);
 
 module.exports = v1;

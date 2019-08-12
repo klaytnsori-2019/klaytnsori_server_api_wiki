@@ -1,9 +1,11 @@
 var express = require('express');
-var path = require('path');
-var app = express();
+var klaytnsori = express.Router();
+var membership = require('./membership/membership');
+var mypage = require('./mypage/mypage');
+var question = require('./question/question');
 
-app.use('/v1/app/klaytnsori/membership', require('v1/klaytnsori/membership.js'));
-app.use('/v1/app/klaytnsori/question', require('v1/klaytnsori/question.js'));
-app.use('/v1/app/klaytnsori/mypage', require('v1/klaytnsori/mypage.js'));
+klaytnsori.use('/membership', membership);
+klaytnsori.use('/mypage', mypage);
+klaytnsori.use('/question', question);
 
 module.exports = klaytnsori;

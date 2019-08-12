@@ -13,21 +13,21 @@ result.successFalse = function(err, message){
     result:false,
     message:message,
     errors:(err)? result.parseError(err):null,
-    data:null
   };
 };
 
-result.parseError = function{errors}{
+result.parseError = function(errors){
   var parsed = {};
   if(errors.name == 'ValidationError'){
     for(var name in errors.errors){
-      var errorname = error.errors[name];
+      var errorname = errors.errors[name];
       parsed[name] = { message: errorname.message};
     }
+    return parsed;
+  }
   else{
     parsed.unhandled = errors;
-    }
   }
 };
 
-module.eports = result;
+module.exports = result;
