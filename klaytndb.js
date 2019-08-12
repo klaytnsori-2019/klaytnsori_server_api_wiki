@@ -92,7 +92,7 @@ db.signup = function (u_email, u_pw, u_nick) {
     });
 };
 
-db.find_pw_auth_indentity = function (u_email) {
+db.find_pw_auth_indentity = function (u_email, string1) {
     db.klaytndb.connect();
     var params = [u_email];
     var sql = "SELECT code FROM userAuth WHERE email = ?";
