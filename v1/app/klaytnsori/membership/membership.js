@@ -32,19 +32,11 @@ membership.post('/login', function(req, res, next){
    var u_email = req.body.email;
    var u_pw = req.body.password;
    //email과 pw를 보내 디비에서 privatekey를 가져옴
-<<<<<<< HEAD
 
    //privatekey로 caver에서 wallet 추가
 
    //db에 email을 보내서 세션 받기.
 
-=======
-
-   //privatekey로 caver에서 wallet 추가
-
-   //db에 email을 보내서 세션 받기.
-
->>>>>>> master
    var data = { message : 'Wellcome to klaytnsori service!'};
    return res.json(result.successTrue(data));
  });
@@ -61,15 +53,9 @@ membership.post('/logout', function (req, res) {
     //DB에서 session_id로 들어온거로 이메일을 확인 후 해당 계좌를 반환
 
     //caver에서 들어온 계좌를 wallet에서 제거
-<<<<<<< HEAD
 
     //DB에서 session_id 행 삭제
 
-=======
-
-    //DB에서 session_id 행 삭제
-
->>>>>>> master
     var data = { message: 'Thanks to use our service' };
     return res.json(result.successTrue(data));
 });
