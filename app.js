@@ -10,9 +10,11 @@ var usersRouter = require('./routes/users');
 var app = express();
 
 var v1 = require('./v1/v1');
-var Caver = require('caver-js');
-var caver = new Caver('https://api.baobab.klaytn.net:8651/')
-caver.klay.accounts.wallet.create();
+var caver = require('./Klaytn');
+
+// initialize caver
+caver.initialize();
+
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
