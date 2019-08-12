@@ -3,6 +3,36 @@ var mypage = express.Router();
 var result = require('./../../../../result');
 
 /*
+*mypage API
+*Request
+*session_id : Get user's information at DB
+*Response
+*account_address : Return user's account address from DB.
+*/
+mypage.get('/',function(req,res,next){
+  var isValid = true;
+  var validationError = {
+    name : 'ValidationError',
+    errors : {}
+  };
+
+  if(!req.query.session_id){
+    isVlid = false;
+    validationError.errors.session_id = { message : 'Session Error'};
+  }
+
+  if(!isValid) return res.json(result.successFalse(validationError));
+  else next();
+}, function(req, res){
+  var _session = req.query.session_id;
+  //DB에서 session_id를 받아서 해당 유저의 account address 반환
+
+  var data = {
+    account_address : _address
+  };
+  return res.json(result.successTrue(data));
+});
+/*
 *transaction API
 *Request
 *session_id : Get user's information at DB
@@ -28,6 +58,10 @@ mypage.get('/transaction', function(req,res,next){
   else next();
 }, function(req,res,next){
   var _session = req.query.session_id;
+  //DB에서 세션 아이디로 해당 유저의 block리스트와 계좌를 반환
+
+  //caver에서 block리스트와 유저 계좌보내면 트랜잭션 리스트를 보내줌
+
 
 });
 
@@ -56,6 +90,8 @@ mypage.get('/my_question_list', function(req,res,next){
   else next();
 }, function(req,res,next){
   var session_id = req.query.session_id;
+  //DB에서 세션아이디로 해당 유저의 질문을 제목,내용,클레이양, 카테고리, 상태를 리스트로 반환
+
 
 });
 
@@ -84,7 +120,7 @@ mypage.get('/my_answer_list', function(req,res,next){
   else next();
 }, function(req,res,next){
   var session_id = req.query.session_id;
-
+  //DB에서 세션아이디로 해당 유저의 질문을 제목, 상태, 답변 내용을 리스트로 반환
 
 });
 
@@ -113,7 +149,7 @@ mypage.get('/my_like_list', function(req,res,next){
   else next();
 }, function(req,res,next){
   var session_id = req.query.session_id;
-
+  //DB에서 세션아이디로 해당 유저의 질문 제목, 답변 내용, like수를 리스트로 반환
 });
 
 /*
@@ -139,6 +175,9 @@ mypage.get('/my_remain_klay', function(req,res,next){
   else next();
 }, function(req,res,next){
   var session_id = req.query.session_id;
+  //DB에서 해당 세션으로 계좌 반환
+
+  //caver에서 계좌로 klay양 반환
 
 });
 
