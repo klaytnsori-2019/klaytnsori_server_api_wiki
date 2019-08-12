@@ -10,14 +10,16 @@ var result = require('./../../../../result');
 *category list - Bring all category list(data type int) at DB
 */
 question.post('/category', function(req,res,next){
+  //DB에서 카테고리 정보 리스트 형태로 반환.
 
+  return res.json(result.successTrue(data));
 });
 
 /*
 *insert_question API
 *Request
 *session_id : Get user's information at DB
-*question_title : Set question_tilte in DB
+*question_title : Set question_title in DB
 *question_klay : Set question_klay amount in DB
 *qusetion_content : Set question_content in DB
 *category : Set question_category in DB
@@ -35,22 +37,18 @@ question.post('/insert_question', function(req,res,next){
     isValid = false;
     validationError.errors.session_id = {message : 'Session Error' };
   }
-
   if(!req.body.question_title){
     isValid = false;
     validationError.errors.question_title = {message : 'Title is empty' };
   }
-
   if(!req.body.quetion_klay){
     isValid = false;
     validationError.errors.question_klay = {message : 'Klay is empty' };
   }
-
   if(!req.body.question_content){
     isValid = false;
     validationError.errors.question_content = {message : 'Content is empty' };
   }
-
   if(!req.body.category){
     isValid = false;
     validationError.errors.category = {message : 'Choose the category' };
@@ -61,7 +59,19 @@ question.post('/insert_question', function(req,res,next){
 }, function(req,res,next){
   var u_sid = req.body.session_id;
   var q_klay = req.body.question_klay;
+  var q_title = req.body.question_title;
+  var q_content = req.body.question_content;
+  var cate = req.body.category;
+  //DB에서 세션 아이디로 해당 유저의 계좌를 가져옴
 
+  //caver에서 해당 유저의 계좌와 klay로 전송 후 트랜잭션 명세서 리턴
+
+  //DB에 필요 정보 저장 후 question_id 리턴
+
+  var data = {
+    question_id : q_id
+  };
+  return res.json(result.successTrue(data));
 });
 
 /*
@@ -75,6 +85,7 @@ question.post('/insert_question', function(req,res,next){
 *question_date : Set question_date using question_id
 *question_email : Set question_email using question_id
 *question_state : Set question_state using question_id
+*category : Set category using question_id
 */
 question.get('/show_question',function(req,res,next){
   var isValid = true;
@@ -92,7 +103,12 @@ question.get('/show_question',function(req,res,next){
   else next();
 },function(req,res,next){
   var question_num = req.query.question_id;
+  //DB에서 질문 넘버로 질문 제목,클레이,내용,시간,질문자,상태,카테고리 리턴
 
+  var data ={
+
+  }
+  return res.json(result.successTrue(data));
 });
 
 /*
@@ -189,7 +205,9 @@ question.post('/insert_answer', function(req,res,next){
   var session_id = req.body.session_id;
   var answer_content = req.body.answer_content;
   var question_num = req.body.question_id;
+  //DB에서 해당 질문 번호에 답변과 답변자 이메일 넣기.
 
+  return res.json(result.successTrue());
 });
 
 /*
@@ -226,7 +244,9 @@ question.post('/insert_like', function(req,res,next){
   var session_id = req.body.session_id;
   var question_num = req.body.question_id;
   var answer_num = req.body.answer_id;
+  //DB에 해당 질문 번호와 답변 번호와 유저 이메일을 테이블에 저장.
 
+  return res.json(result.successTrue());
 });
 
 /*
@@ -267,7 +287,7 @@ question.post('/select_answer',function(req,res,next){
   var question_num = req.body.question_id;
   var answer_num = req.body.answer_id;
   var select = req.body.select_enable;
-
+  var sessoin_id
   if(select){
 
         }
