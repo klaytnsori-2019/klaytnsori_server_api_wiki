@@ -31,7 +31,13 @@ membership.post('/login', function(req, res, next){
  function(req, res){
    var u_email = req.body.email;
    var u_pw = req.body.password;
+   //email과 pw를 보내 디비에서 privatekey를 가져옴
 
+   //privatekey로 caver에서 wallet 추가
+
+   //db에 email을 보내서 세션 받기.
+
+   var data = { message : 'Wellcome to klaytnsori service!'};
    return res.json(result.successTrue(data));
  });
 
@@ -44,8 +50,13 @@ membership.post('/login', function(req, res, next){
 */
 membership.post('/logout', function (req, res) {
     var logout_session = req.body.session_id;
-    var data = { message: 'Thanks to use our service' };
+    //DB에서 session_id로 들어온거로 이메일을 확인 후 해당 계좌를 반환
 
+    //caver에서 들어온 계좌를 wallet에서 제거
+
+    //DB에서 session_id 행 삭제
+
+    var data = { message: 'Thanks to use our service' };
     return res.json(result.successTrue(data));
 });
 
@@ -86,6 +97,8 @@ membership.post('/signup', function(req, res, next){
     var u_email = req.body.email;
     var u_pw = req.body.password;
     var u_nick = req.body.nickname;
+    //DB에서 해당 이메일 중복 여부 확인 후 count값으로 리턴
+
 
     var data = {
       email : u_email,
@@ -119,12 +132,17 @@ membership.post('/find_pw_auth_code', function(req, res, next){
   else next();
 },function(req,res){
     var u_email = req.body.email;
+    //DB에서 해당 email이 있는지 확인 후 count로 리턴
+
 
     var authorize_text = "";
     var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     for(var i = 0; i < 6 ; i++){
       authorize_text += possible.charAt(Math.floor(Math.random() * possible.length));
     }
+
+    //DB에서 해당 이메일과 인증코드를 인증테이블에 저장후 true리턴
+
     var data = {
       email : u_email,
       authorize_text : authorize_text
@@ -163,6 +181,7 @@ membership.post('/find_pw_auth_identity', function (req, res, next) {
 },function(req, res, next){
   var u_email = req.body.email;
   var string1 = req.body.authorize_text;
+  //DB에서 해당 이메일로 저장되어 있는 인증코드 리턴
 
   if(string1 != string2){
     var codeError = {
@@ -173,7 +192,14 @@ membership.post('/find_pw_auth_identity', function (req, res, next) {
     return res.json(result.successFalse(codeError));
   }
 
-  else return res.json(result.successTrue(data));
+  else{
+    //DB에서 해당 이메일의 매칭되어있는 password 리턴
+
+    var data = {
+      password : _passwd
+    };
+    return res.json(result.successTrue(data));
+  }
 });
 
 /*
@@ -204,8 +230,10 @@ membership.post('/modify_pw', function (req, res, next) {
 }, function (req, res) {
     var _session = req.body.session_id;
     var m_pw = req.body.password;
+    //DB에서 해당 세션으로 이메일을 확인한 뒤 새로들어온 password로 변경
 
-    return res.json({ message: 'Success to modify your password!' });
+    var data = { message : 'Success to modify your password!'};
+    return res.json(result.successTrue(data));
 });
 
 /*
@@ -243,6 +271,7 @@ membership.post('/authorize_code', function (req, res, next) {
     for (var i = 0; i < 6 ; i++) {
         authorize_text += possible.charAt(Math.floor(Math.random() * possible.length));
     }
+    //DB에서 해당 이메일과 인증번호를 인증테이블에 저장 후 true 리턴
     var data = {
         "email" : u_email,
         "password" : u_pw,
@@ -291,8 +320,13 @@ membership.post('/authorize_identity', function (req, res, next) {
   var u_pw = req.body.password;
   var u_nick = req.body.nickname;
   var string1 = req.body.authorize_text;
+  //DB에서 해당 이메일로 들어온 인증코드 리턴
 
   if(string1 == string2){
+    //caver에서 새로운 계좌 생성 후 address와 privatekey 리턴
+
+    //DB에 해당 사용자의 정보를 모두 저장.
+
     var data = {};
     return res.json(result.successTrue(data));
   }
