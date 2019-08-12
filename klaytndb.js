@@ -49,6 +49,7 @@ db.logout = function (logout_session_id) {
         db.end();
     });
 };
+
 db.signup = function (u_email, u_pw, u_nick) {
     db.connect();
     var params = [u_email];
@@ -103,6 +104,7 @@ db.find_pw = function (u_email) {
         }
     });
 };
+
 db.modify_pw = function (_session, m_pw) {
     db.connect();
     var params = [_session];
@@ -167,7 +169,8 @@ db.transaction = function (session_id) {
             return res.json(result);
         }
     });
-}
+};
+
 db.my_question_list = function (session_id) {
     db.connect();
     var params = [session_id];
@@ -186,7 +189,8 @@ db.my_question_list = function (session_id) {
             });
         }
     });
-}
+};
+
 db.my_answer_list = function (session_id) {
     db.connect();
     var params = [session_id];
@@ -206,6 +210,7 @@ db.my_answer_list = function (session_id) {
         }
     });
 };
+
 db.my_like_list = function (session_id) {
     db.connect();
     var params = [session_id];
@@ -225,6 +230,7 @@ db.my_like_list = function (session_id) {
         }
     });
 };
+
 db.my_remain_klay = function (session_id) {
     db.connect();
     var params = [session_id];
@@ -252,6 +258,7 @@ db.my_remain_klay = function (session_id) {
         }
     });
 };
+
 db.category = function () {
     db.connect();
     var sql = "SELECT * FROM category";
@@ -263,6 +270,7 @@ db.category = function () {
         }
     });
 };
+
 db.insert_question = function (session_id, question_title, question_klay, question_content, category, trans_time) {
     db.connect();
     var sql = "SELECT count(*) as total FROM question";
