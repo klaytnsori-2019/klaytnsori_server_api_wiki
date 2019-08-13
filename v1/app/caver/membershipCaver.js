@@ -7,7 +7,7 @@ membershipCaver.addAccount = function(_privateKey){
     return true;
 }
 
-membershipCaver.removeAccount = function(_privateKey){
+membershipCaver.removeAccount = function(_address){
 
     return true;
 }
