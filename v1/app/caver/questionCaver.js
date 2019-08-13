@@ -1,10 +1,8 @@
-var cav = require('../../../Klaytn')
+var cav = require('../../../Klaytn');
 
 var questionCaver = {};
 
 questionCaver.putReward = function(_address){
-
-    
 
     return transaction;
 }
