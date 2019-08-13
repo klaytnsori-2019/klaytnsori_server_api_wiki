@@ -8,7 +8,7 @@ db.klaytndb = mysql.createConnection({
     database: 'klaytndb'
 });
 
-db.login = function (u_email, u_pw) {
+db.login1 = function (u_email, u_pw) {
     db.klaytndb.connect();
     var sql = "SELECT email FROM userInfo WHERE email = ? AND password = ?";
     var params = [u_email, u_pw];
@@ -19,9 +19,24 @@ db.login = function (u_email, u_pw) {
             var sql4 = "DELETE FROM userSession WHERE email = ?";
             db.klaytndb.query(sql4, params4, function (err, result, fields) {
                 if (err) console.log(err);
+                else {
+                    var params2 = [u_email];
+                    var sql2 = "SELECT private_key FROM userInfo WHERE email = ?";
+                    db.klaytndb.query(sql2, params2, function (err, result, fields) {
+                        if (err) console.log(err);
+                        else {
+                            db.klaytndb.end();
+                            return result; // private_key 반환
+                        }
+                    });
+                }
             });
         }
     });
+};
+
+db.login2 = function (u_email, u_pw) {
+    db.klaytndb.connect();
     var sql2 = "SELECT MAX(session_id) as max FROM userSession";
     db.klaytndb.query(sql2, function (err, result, fields) {
         if (err) console.log(err);
@@ -30,42 +45,62 @@ db.login = function (u_email, u_pw) {
             var sql3 = "INSERT INTO userSession (session_id ,email) VALUES(?, ?)";
             var params3 = [result[0].max, u_email];
             db.klaytndb.query(sql3, params3, function (err, result, fields) {
-                if (err) console.log(err); // login 성공
+                if (err) console.log(err);
                 else {
                     db.klaytndb.end();
-                    return result;
+                    return result; // session_id 반환
                 }
             });
         }
     });
 };
 
-db.logout = function (logout_session_id) {
+db.logout1 = function (logout_session_id) {
     db.klaytndb.connect();
-    var params = [logout_session];
-    var sql = "DELETE FROM userSession WHERE session_id = ?";
+    var sql = "SELECT email FROM userSession WHERE email = ?";
+    var params = [logout_session_id];
     db.klaytndb.query(sql, params, function (err, result, fields) {
-        if (err) console.log(err); // logout 성공
-        db.klaytndb.end();
-    });
-};
-
-db.signup1 = function (u_email, u_pw, u_nick) {
-    db.klaytndb.connect();
-    var params = [u_email];
-    var sql = "SELECT email FROM userInfo WHERE email = ?";
-    db.klaytndb.query(sql, params, function (err, result, fields) {
-        if (err) console.log(err);
+        if (err) console.log(err); // email과 password가 일치하지 않습니다.
         else {
-            db.klaytndb.end();
-            return _ok = true;  
+            var params2 = [result[0].email];
+            var sql2 = "SELECT wallet_address FROM userInfo WHERE email = ?";
+            db.klaytndb.query(sql2, params2, function (err, result, fields) {
+                if (err) console.log(err);
+                else {
+                    db.klaytndb.end();
+                    return result; // wallet_address 반환
+                }
+            });
         }
     });
 };
 
-db.signup2 = function (u_email, u_pw, u_nick, _address, _privateK) {
+db.logout2 = function (logout_session_id) {
     db.klaytndb.connect();
-    if (_ok) {
+    var params = [logout_session_id];
+    var sql = "DELETE FROM userSession WHERE session_id = ?";
+    db.klaytndb.query(sql, params, function (err, result, fields) {
+        if (err) console.log(err); 
+        db.klaytndb.end(); // session_id 삭제
+    });
+};
+
+db.signup1 = function (u_email) {
+    db.klaytndb.connect();
+    var params = [u_email];
+    var sql = "SELECT count(email) as total FROM userInfo WHERE email = ?";
+    db.klaytndb.query(sql, params, function (err, result, fields) {
+        if (err) console.log(err); 
+        else { // email 중복 판단 0(중복없음) or 1(중복있음)
+            db.klaytndb.end();
+            return result; // result[0].total = 0 or 1
+        }
+    });
+};
+
+db.signup2 = function (u_email, u_pw, u_nick, _address, _privateK) { // authorize_identity에 들어가야함
+    db.klaytndb.connect();
+    if (true) { // result[0].total = 0 인 경우
         /* 여기부터 위에 선언해줘야함
         //caver에서 wallet 생성 후 privateKey와 Address를 돌려줌
         //const account = caver.klay.accounts.create();
@@ -95,38 +130,64 @@ db.signup2 = function (u_email, u_pw, u_nick, _address, _privateK) {
         };
         emailError.errors = { message: 'Another user is using same email' };
         db.klaytndb.end();
-        return result;
+        return emailError;
     }
 };
 
-db.find_pw_auth_indentity = function (u_email, string1) {
+db.find_pw_auth_indentity1 = function (u_email) {
+    db.klaytndb.connect();
+    var params = [u_email];
+    var sql = "SELECT count(email) as total FROM userInfo WHERE email = ?";
+    db.klaytndb.query(sql, params, function (err, result, fields) {
+        if (err) console.log(err); 
+        else { // 해당 email 존재 여부 판단 1(존재) or 0(없음)
+            db.klaytndb.end();
+            return result; // result[0].total = 0 or 1
+        }
+    });
+};
+
+db.find_pw_auth_indentity2 = function (u_email, authorize_text) {
+    db.klaytndb.connect();
+    var params = [u_email, authorize_text];
+    var sql = "INSERT INTO userAuth (email, code) VALUES (?, ?)";
+    db.klaytndb.query(sql, params, function (err, result, fields) {
+        if (err) console.log(err); 
+        else { 
+            db.klaytndb.end();
+            return true; // 인증 코드 저장 성공
+        }
+    });
+};
+
+db.find_pw_auth_indentity3 = function (u_email) { //DB에서 해당 이메일로 들어온 인증코드 리턴 부분에 쓰임
     db.klaytndb.connect();
     var params = [u_email];
     var sql = "SELECT code FROM userAuth WHERE email = ?";
-    db.klaytndb.query(sql, params, function(err, rows, fields){
+    db.klaytndb.query(sql, params, function (err, rows, fields) {
         if (err) console.log(err);
-        else{
-            var string2 = rows[0].code;
-            if(string1 != string2){
-                var codeError = {
-                    "name": 'Authorize code Error',
-                    "errors": {}
-                };
-                codeError.errors = { message: 'Diffrent authorize text' };
-                return codeError;
+        else {
+            db.klaytndb.end();
+            return rows; // 인증 code 반환
             }
-        }
     });
+};
+
+db.find_pw_auth_indentity4 = function (u_email) {
+    db.klaytndb.connect();
     var sql1 = "DELETE FROM userAuth WHERE email = ?";
     var params1 = [u_email];
-    db.klaytndb.query(sql1, params1, function(err, rows, fields){
-        if (err) console.log(err);
+    db.klaytndb.query(sql1, params1, function (err, rows, fields) {
+        if (err) console.log(err); // 인증 코드 삭제
     });
     var params2 = [u_email]
     var sql2 = "SELECT password FROM userInfo WHERE email = ?";
-    db.klaytndb.query(sql2, params2, function(err, result, fields){
+    db.klaytndb.query(sql2, params2, function (err, result, fields) {
         if (err) console.log(err);
-        else return result; // pw 찾기 성공
+        else {
+            db.klaytndb.end();
+            return result; // pw 반환
+        }
     });
 };
 
@@ -146,7 +207,7 @@ db.modify_pw = function (_session, m_pw) {
                     "name": 'Modify password',
                     "data": {}
                     };
-                    codeSuccess.data = { message: 'Diffrent authorize text' };
+                    codeSuccess.data = { message: 'Success to modify password!' };
                     db.klaytndb.end();
                     return codeSuccess;
                 }
@@ -155,6 +216,7 @@ db.modify_pw = function (_session, m_pw) {
     });
 };
 
+/*
 db.authorize_identity = function (u_email, string1) {
     db.klaytndb.connect();
     var params = [u_email];
@@ -181,8 +243,29 @@ db.authorize_identity = function (u_email, string1) {
         }
     });
 };
+*/
 
-db.transaction = function (session_id) {
+db.noname = function (session_id) { // mypage.get('/',function(req,res,next)
+    db.klaytndb.connect();
+    var sql = "SELECT email FROM userSession WHERE email = ?";
+    var params = [session_id];
+    db.klaytndb.query(sql, params, function (err, result, fields) {
+        if (err) console.log(err); // email과 password가 일치하지 않습니다.
+        else {
+            var params2 = [result[0].email];
+            var sql2 = "SELECT wallet_address FROM userInfo WHERE email = ?";
+            db.klaytndb.query(sql2, params2, function (err, result, fields) {
+                if (err) console.log(err);
+                else {
+                    db.klaytndb.end();
+                    return result; // wallet_address 반환
+                }
+            });
+        }
+    });
+};
+
+db.transaction = function (session_id) { // //DB에서 세션 아이디로 해당 유저의 block리스트와 계좌를 반환 추가해야함 아직 미완성
     db.klaytndb.connect();
     var params = [session_id];
     var sql = "SELECT email FROM userSession WHERE session_id = ?";
@@ -190,17 +273,13 @@ db.transaction = function (session_id) {
         if (err) console.log(err);
         else {
             // email 은 result[0].email 에 저장되어 있음
-            //var data = new Array();
-            //for (var i = 0 ; i < b_list.length ; i++) {
-            //data[i] = caver.klay.getBlock(b_list[i]);
-            //} 밑에 선언해야함
             db.klaytndb.end();
             return result;
         }
     });
 };
 
-db.my_question_list = function (session_id) {
+db.my_question_list = function (session_id) { // 아직 미완성 생각 더 해봐야겠음
     db.klaytndb.connect();
     var params = [session_id];
     var sql = "SELECT email FROM userSession WHERE session_id = ?";
@@ -233,14 +312,14 @@ db.my_answer_list = function (session_id) {
                 if (err) console.log(err);
                 else {
                     db.klaytndb.end();
-                    return result;
+                    return result; // 답변 제목, 답변 내용, 채택 여부를 리스트로 반환
                 }
             });
         }
     });
 };
 
-db.my_like_list = function (session_id) {
+db.my_like_list = function (session_id) { // 아직 미완성 더 생각해봐야함
     db.klaytndb.connect();
     var params = [session_id];
     var sql = "SELECT email FROM userSession WHERE session_id = ?";
@@ -272,16 +351,8 @@ db.my_remain_klay = function (session_id) {
             db.klaytndb.query(sql2, params2, function (err, results, fields) {
                 if (err) console.log(err);
                 else{
-                    // wallet_address 는 result[0].wallet_address 에 있음
-                    // caver
-                    //var u_account_address;
-                    //var u_klay = caver.klay.getBalance('u_account_address');
-                    //큰 따음표일 수 있다.
-                    //var data = {
-                    //    klay: u_klay
-                    //}; 밑에 선언해야함
                     db.klaytndb.end();
-                    return results;
+                    return results; // wallet_address 반환
                 }
             });
         }
