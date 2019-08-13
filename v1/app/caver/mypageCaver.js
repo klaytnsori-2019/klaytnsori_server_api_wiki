@@ -2,7 +2,9 @@ var cav = require('../../../Klaytn')
 
 var mypageCaver = {};
 
-mypageCaver.showTransactions = function(_address, _blockNumList){
+mypageCaver.showTransactions = function(_blockNumList){
+
+    
 
     return transactions;
 }

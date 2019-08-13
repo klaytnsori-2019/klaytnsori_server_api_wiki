@@ -4,6 +4,8 @@ var questionCaver = {};
 
 questionCaver.putReward = function(_address){
 
+    
+
     return transaction;
 }
 
