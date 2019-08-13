@@ -1,14 +1,15 @@
 const Caver = require('caver-js');
-const caver = new Caver('https://api.baobab.klaytn.net:8651/');
+const ca = new Caver('https://api.baobab.klaytn.net:8651/');
 const Config = require('./KlaytnConfig');
 
 var cav = {}
 
 cav.initialize = function(){
-    caver.klay.accounts.wallet.create();
-    caver.klay.accounts.wallet.add(Config.feePayerPrivateKey);
+    ca.klay.accounts.wallet.create();
+    ca.klay.accounts.wallet.add(Config.feePayerPrivateKey);
 };
 
 cav.config = Config;
+cav.caver = ca;
 
 module.exports = cav;
