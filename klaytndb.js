@@ -160,7 +160,7 @@ db.find_pw_auth_indentity2 = function (u_email, authorize_text) {
     });
 };
 
-db.find_pw_auth_indentity3 = function (u_email) { //DB에서 해당 이메일로 들어온 인증코드 리턴 부분에 쓰임
+db.auth_indentity_code = function (u_email) { //DB에서 해당 이메일로 들어온 인증코드 리턴 부분에 쓰임
     db.klaytndb.connect();
     var params = [u_email];
     var sql = "SELECT code FROM userAuth WHERE email = ?";
@@ -265,21 +265,7 @@ db.noname = function (session_id) { // mypage.get('/',function(req,res,next)
     });
 };
 
-db.transaction = function (session_id) { // //DB에서 세션 아이디로 해당 유저의 block리스트와 계좌를 반환 추가해야함 아직 미완성
-    db.klaytndb.connect();
-    var params = [session_id];
-    var sql = "SELECT email FROM userSession WHERE session_id = ?";
-    db.klaytndb.query(sql, params, function (err, result, fields) {
-        if (err) console.log(err);
-        else {
-            // email 은 result[0].email 에 저장되어 있음
-            db.klaytndb.end();
-            return result;
-        }
-    });
-};
-
-db.my_question_list = function (session_id) { // 아직 미완성 생각 더 해봐야겠음
+db.transaction = function (session_id) { // //DB에서 세션 아이디로 해당 유저의 block리스트와 계좌를 반환
     db.klaytndb.connect();
     var params = [session_id];
     var sql = "SELECT email FROM userSession WHERE session_id = ?";
@@ -287,12 +273,65 @@ db.my_question_list = function (session_id) { // 아직 미완성 생각 더 해
         if (err) console.log(err);
         else {
             var params2 = [result[0].email];
-            var sql2 = "SELECT question.question_title, question.question_content, question.klay, category.category FROM question JOIN category WHERE question.email = ? AND question.category_num = category.category_num";
+            var sql2 = "SELECT wallet_address FROM userInfo WHERE email = ?";
             db.klaytndb.query(sql2, params2, function (err, result, fields) {
                 if (err) console.log(err);
                 else {
-                    db.klaytndb.end();
-                    return result;
+                    var params3 = [result[0].wallet_address];
+                    var sql3 = "SELECT * FROM blockNum WHERE wallet_address = ?";
+                    db.klaytndb.query(sql3, params3, function (err, result, fields) {
+                        if (err) console.log(err);
+                        else {
+                            db.klaytndb.end();
+                            return result;
+                            }
+                    });
+                 }
+            });
+        }
+    });
+};
+
+db.my_question_list = function (session_id) {
+    db.klaytndb.connect();
+    var params = [session_id];
+    var sql = "SELECT email FROM userSession WHERE session_id = ?";
+    db.klaytndb.query(sql, params, function (err, result, fields) {
+        if (err) console.log(err);
+        else {
+            var params2 = [result[0].email];
+            var sql3 = "SELECT question_num FROM question WHERE email = ?";
+            db.klaytndb.query(sql3, params2, function (err, result, fields) {
+                if (err) console.log(err);
+                else {
+                    var params3 = [result[0].question_num];
+                    var sql4 = "SELECT count(is_selected) as total FROM answer WHERE question_num = ?";
+                    db.klaytndb.query(sql4, params3, function (err, result, fields) {
+                        if (err) console.log(err);
+                        else {
+                            if (result[0].total == 0) { // 답변 없는 경우
+                                var sql5 = "SELECT question.question_title, question.question_content, question.klay, category.category FROM question INNER JOIN category ON question.question_num = ?  AND question.category_num = category.category_num";
+                                db.klaytndb.query(sql5, params3, function (err, result, fields) {
+                                    if (err) console.log(err);
+                                    else {
+                                        result[0].is_selected = "false"; // 답변이 없으니 채택 여부 false
+                                        db.klaytndb.end();
+                                        return result; // 해당 유저의 질문을 제목,내용,클레이양, 카테고리, 상태를 리스트로 반환
+                                    }
+                                });
+                            }
+                            else { // 답변 있는 경우
+                                var sql6 = "SELECT question.question_num, question.email, question.question_title, category.category, question.question_content, question.klay, question.time, answer.is_selected FROM question INNER JOIN answer ON question.question_num = ? AND question.question_num = answer.question_num INNER JOIN category ON question.category_num = category.category_num";
+                                db.klaytndb.query(sql6, params3, function (err, result, fields) {
+                                    if (err) console.log(err);
+                                    else {
+                                        db.klaytndb.end();
+                                        return result; // 해당 유저의 질문을 제목,내용,클레이양, 카테고리, 상태를 리스트로 반환
+                                    }
+                                });
+                            }
+                        }
+                    });
                 }
             });
         }
@@ -319,7 +358,7 @@ db.my_answer_list = function (session_id) {
     });
 };
 
-db.my_like_list = function (session_id) { // 아직 미완성 더 생각해봐야함
+db.my_like_list = function (session_id) {
     db.klaytndb.connect();
     var params = [session_id];
     var sql = "SELECT email FROM userSession WHERE session_id = ?";
@@ -335,6 +374,19 @@ db.my_like_list = function (session_id) { // 아직 미완성 더 생각해봐�
                     return result;
                 }
             });
+        }
+    });
+};
+
+db.my_like_count = function (answer_num) {
+    db.klaytndb.connect();
+    var params = [answer_num];
+    var sql = "SELECT count(answer_num) as like_num FROM userLike WHERE answer_num = ?";
+    db.klaytndb.query(sql, params, function (err, result, fields) {
+        if (err) console.log(err);
+        else {
+            db.klaytndb.end();
+            return result; // result[0].like_num 은 like 수
         }
     });
 };
@@ -371,13 +423,13 @@ db.category = function () {
     });
 };
 
-db.insert_question = function (session_id, question_title, question_klay, question_content, category, trans_time) {
+db.insert_question1 = function (session_id, question_title, question_klay, question_content, category, trans_time) {
     db.klaytndb.connect();
     var sql = "SELECT count(*) as total FROM question";
     db.klaytndb.query(sql, function (err, result, fields) {
         if (err) console.log(err);
         else {
-            question_num = result[0].total + 1;
+            var question_num = result[0].total + 1;
             var sql = "SELECT email FROM userSession WHERE session_id = ?";
             var params = [session_id];
             db.klaytndb.query(sql, params, function (err, results, fields) {
@@ -390,6 +442,33 @@ db.insert_question = function (session_id, question_title, question_klay, questi
                         else {
                             db.klaytndb.end();
                             return result;
+                        }
+                    });
+                }
+            });
+        }
+    });
+};
+
+db.insert_question2 = function (session_id, block_num) {
+    db.klaytndb.connect();
+    var params = [session_id];
+    var sql = "SELECT email FROM userSession WHERE session_id = ?";
+    db.klaytndb.query(sql, params, function (err, result, fields) {
+        if (err) console.log(err);
+        else {
+            var sql2 = "SELECT wallet_address FROM userInfo WHERE email = ?";
+            var params2 = [result[0].email];
+            db.klaytndb.query(sql2, params2, function (err, results, fields) {
+                if (err) console.log(err);
+                else {
+                    var params3 = [block_num, results[0].wallet_address];
+                    var sql3 = "INSERT INTO blockNum (block_num, results[0].wallet_address) VALUES (?, ?)";
+                    db.klaytndb.query(sql3, params3, function (err, result, fields) {
+                        if (err) console.log(err);
+                        else {
+                            db.klaytndb.end();
+                            return result; // block_num, wallet_address 저장
                         }
                     });
                 }
