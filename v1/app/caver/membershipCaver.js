@@ -4,16 +4,16 @@ var membershipCaver = {};
 
 membershipCaver.addAccount = function(_privateKey){
 
-    cav.caver.klay.accounts.wallet.add(_privateKey);
+    var account = cav.caver.klay.accounts.wallet.add(_privateKey);
 
-    return true;
+    return account;
 }
 
 membershipCaver.removeAccount = function(_address){
 
-    cav.caver.klay.accounts.wallet.remove(_address);
+    var result = cav.caver.klay.accounts.wallet.remove(_address);
 
-    return true;
+    return result;
 }
 
 membershipCaver.createAccount = function(){
