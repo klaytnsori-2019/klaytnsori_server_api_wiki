@@ -1,4 +1,4 @@
-var caver = require('../../../Klaytn')
+var cav = require('../../../Klaytn')
 
 var membershipCaver = {};
 
