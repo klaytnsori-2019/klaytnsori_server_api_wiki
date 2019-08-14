@@ -35,7 +35,7 @@ db.login1 = function (u_email, u_pw) {
     });
 };
 
-db.login2 = function (u_email, u_pw) {
+db.login2 = function (u_email) {
     db.klaytndb.connect();
     var sql2 = "SELECT MAX(session_id) as max FROM userSession";
     db.klaytndb.query(sql2, function (err, result, fields) {
