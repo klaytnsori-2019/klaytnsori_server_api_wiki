@@ -93,14 +93,18 @@ db.signup1 = function (u_email) {
         if (err) console.log(err); 
         else { // email 중복 판단 0(중복없음) or 1(중복있음)
             db.klaytndb.end();
-            return result; // result[0].total = 0 or 1
+            if(result[0].total)
+            {return false;} // 중복 이메일 있는경우
+            else{
+                return true; // 중복 이메일 없는 경우
+            } // result[0].total = 0 or 1
         }
     });
 };
 
 db.signup2 = function (u_email, u_pw, u_nick, _address, _privateK) { // authorize_identity에 들어가야함
     db.klaytndb.connect();
-    if (true) { // result[0].total = 0 인 경우
+    // result[0].total = 0 인 경우
         /* 여기부터 위에 선언해줘야함
         //caver에서 wallet 생성 후 privateKey와 Address를 돌려줌
         //const account = caver.klay.accounts.create();
@@ -122,16 +126,6 @@ db.signup2 = function (u_email, u_pw, u_nick, _address, _privateK) { // authoriz
             db.klaytndb.end();
             return result;
         });
-    }
-    else {
-        var emailError = {
-            "name": 'email 중복',
-            "errors": {}
-        };
-        emailError.errors = { message: 'Another user is using same email' };
-        db.klaytndb.end();
-        return emailError;
-    }
 };
 
 db.find_pw_auth_identity1 = function (u_email) {
@@ -201,7 +195,11 @@ db.modify_pw = function (_session, m_pw) {
             var sql2 = "UPDATE userInfo SET password = ? WHERE email = ?"
             var params2 = [m_pw, result[0].email];
             db.klaytndb.query(sql2, params2, function (err, result, fields) {
-                if (err) console.log(err); // pw 변경 성공
+                if (err) 
+                {
+                    console.log(err);
+                    return false;
+                } // pw 변경 성공
                 else {
                     var codeSuccess = {
                     "name": 'Modify password',
@@ -209,7 +207,7 @@ db.modify_pw = function (_session, m_pw) {
                     };
                     codeSuccess.data = { message: 'Success to modify password!' };
                     db.klaytndb.end();
-                    return codeSuccess;
+                    return true;
                 }
             });
         }
