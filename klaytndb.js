@@ -134,7 +134,7 @@ db.signup2 = function (u_email, u_pw, u_nick, _address, _privateK) { // authoriz
     }
 };
 
-db.find_pw_auth_indentity1 = function (u_email) {
+db.find_pw_auth_identity1 = function (u_email) {
     db.klaytndb.connect();
     var params = [u_email];
     var sql = "SELECT count(email) as total FROM userInfo WHERE email = ?";
@@ -147,7 +147,7 @@ db.find_pw_auth_indentity1 = function (u_email) {
     });
 };
 
-db.find_pw_auth_indentity2 = function (u_email, authorize_text) {
+db.find_pw_auth_identity2 = function (u_email, authorize_text) {
     db.klaytndb.connect();
     var params = [u_email, authorize_text];
     var sql = "INSERT INTO userAuth (email, code) VALUES (?, ?)";
@@ -160,7 +160,7 @@ db.find_pw_auth_indentity2 = function (u_email, authorize_text) {
     });
 };
 
-db.auth_indentity_code = function (u_email) { //DB에서 해당 이메일로 들어온 인증코드 리턴 부분에 쓰임
+db.auth_identity_code = function (u_email) { //DB에서 해당 이메일로 들어온 인증코드 리턴 부분에 쓰임
     db.klaytndb.connect();
     var params = [u_email];
     var sql = "SELECT code FROM userAuth WHERE email = ?";
@@ -173,7 +173,7 @@ db.auth_indentity_code = function (u_email) { //DB에서 해당 이메일로 들
     });
 };
 
-db.find_pw_auth_indentity4 = function (u_email) {
+db.find_pw_auth_identity4 = function (u_email) {
     db.klaytndb.connect();
     var sql1 = "DELETE FROM userAuth WHERE email = ?";
     var params1 = [u_email];
