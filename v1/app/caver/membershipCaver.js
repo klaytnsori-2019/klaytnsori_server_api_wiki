@@ -4,9 +4,12 @@ var membershipCaver = {};
 
 membershipCaver.addAccount = function(_privateKey){
 
-    var account = cav.caver.klay.accounts.wallet.add(_privateKey);
-
-    return account;
+    try{
+        cav.caver.klay.accounts.wallet.add(_privateKey);
+        return true;
+    }catch(e){
+        return false;
+    }
 }
 
 membershipCaver.removeAccount = function(_address){
