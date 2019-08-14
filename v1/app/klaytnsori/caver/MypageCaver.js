@@ -1,5 +1,5 @@
-var cav = require('../../../Klaytn');
-var decoder = require('../../../Decoder');
+var cav = require('../../../../Klaytn');
+var decoder = require('../../../../Decoder');
 
 var mypageCaver = {};
 
