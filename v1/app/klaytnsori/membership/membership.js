@@ -2,7 +2,7 @@ var express = require('express');
 var membership = express.Router();
 var result = require('./../../../../result.js');
 var mail = require('./../../../../mail.js');
-var caver = require('../../caver/membershipCaver.js');
+var caver = require('../caver/MembershipCaver.js');
 var db = require('./../../../../klaytndb.js');
 /*
 *Log-in API
@@ -33,20 +33,24 @@ membership.post('/login', function(req, res, next){
    var userEmail = req.body.email;
    var userPassword = req.body.password;
    //email과 pw를 보내 디비에서 privatekey를 가져옴
-   var userPrivatekey = .login(userEmail, userPassword);
+   var userPrivatekey = db.login1(userEmail, userPassword);
    //privatekey로 caver에서 wallet 추가
    var caverOk = caver.addAccount(userPrivatekey);
    //db에 email을 보내서 세션 받기.
    if(caverOk){
-     var userSession = db.login2(u_email, u_ pw);
+     var userSession = db.login2(userEmail, userPassword);
      var data = {
        "session_id" : userSession
      };
      return res.json(result.successTrue(data));
    }
    else {
-     //wallet추가 err처리
-
+     var accountError = {
+         "name": 'account 중복',
+         "errors": {}
+     };
+     accountError.errors.email = { message: 'Already user account in wallet' };
+     return res.json(result.successFalse(accountError));
    }
  });
 
@@ -114,7 +118,7 @@ membership.post('/signup', function(req, res, next){
     var userNickname = req.body.nickname;
     //DB에서 해당 이메일 중복 여부 확인 후 count값으로 리턴
     var overlapCount = db.signup1(userEmail);
-    if(overlap_count == 0){
+    if(overlapCount == 0){
       var data = {
         "email" : userEmail,
         "password" : userPassword,
@@ -176,11 +180,21 @@ membership.post('/find_pw_auth_code', function(req, res, next){
           });
       }
       else{
-        //db저장 오류
+        var dbError = {
+            "name": 'DB 저장 불가',
+            "errors": {}
+        };
+        dbError.errors.email = { message: 'Cannot insert information in authUser table' };
+        return res.json(result.successFalse(dbError));
       }
     }
     else{
-      //email존재X
+      var emailError = {
+          "name": 'email 없음',
+          "errors": {}
+      };
+      emailError.errors.email = { message: 'Cannot find email in DB' };
+      return res.json(result.successFalse(emailError));
     }
 });
 
@@ -268,7 +282,12 @@ membership.post('/modify_pw', function (req, res, next) {
       return res.json(result.successTrue(data));
     }
     else{
-      //db변경 오류
+      var dbError = {
+          "name": 'DB 변경 오류',
+          "errors": {}
+      };
+      dbError.errors.email = { message: 'Cannot modify information in userInfo table' };
+      return res.json(result.successFalse(dbError));
     }
 });
 
@@ -321,6 +340,14 @@ membership.post('/authorize_code', function (req, res, next) {
           return res.json(result.successTrue(data));
         });
     }
+    else{
+      var dbError = {
+          "name": 'DB 저장 불가',
+          "errors": {}
+      };
+      dbError.errors.email = { message: 'Cannot insert information in authUser table' };
+      return res.json(result.successFalse(dbError));
+    }
 });
 
 /*
@@ -371,7 +398,12 @@ membership.post('/authorize_identity', function (req, res, next) {
       return res.json(result.successTrue(data));
     }
     else {
-      //db 오류
+      var dbError = {
+          "name": 'DB 저장 불가',
+          "errors": {}
+      };
+      dbError.errors.email = { message: 'Cannot insert information in userInfo table' };
+      return res.json(result.successFalse(dbError));
     }
   }
   else{
@@ -382,6 +414,11 @@ membership.post('/authorize_identity', function (req, res, next) {
     codeError.errors = { message: 'Diffrent authorize text' };
     return res.json(result.successFalse(codeError));
   }
+});
+
+membership.post('/dusr', function(req,res){
+  db.duser(req.body.email);
+  return res.send("success");
 });
 
 module.exports = membership;
