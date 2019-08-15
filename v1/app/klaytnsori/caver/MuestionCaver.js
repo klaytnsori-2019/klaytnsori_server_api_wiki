@@ -1,4 +1,4 @@
-var cav = require('../../../Klaytn');
+var cav = require('../../../../Klaytn');
 
 var questionCaver = {};
 

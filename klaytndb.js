@@ -35,7 +35,7 @@ db.login1 = function (u_email, u_pw) {
     });
 };
 
-db.login2 = function (u_email, u_pw) {
+db.login2 = function (u_email) {
     db.klaytndb.connect();
     var sql2 = "SELECT MAX(session_id) as max FROM userSession";
     db.klaytndb.query(sql2, function (err, result, fields) {
@@ -93,14 +93,18 @@ db.signup1 = function (u_email) {
         if (err) console.log(err); 
         else { // email 중복 판단 0(중복없음) or 1(중복있음)
             db.klaytndb.end();
-            return result; // result[0].total = 0 or 1
+            if(result[0].total)
+            {return false;} // 중복 이메일 있는경우
+            else{
+                return true; // 중복 이메일 없는 경우
+            } // result[0].total = 0 or 1
         }
     });
 };
 
 db.signup2 = function (u_email, u_pw, u_nick, _address, _privateK) { // authorize_identity에 들어가야함
     db.klaytndb.connect();
-    if (true) { // result[0].total = 0 인 경우
+    // result[0].total = 0 인 경우
         /* 여기부터 위에 선언해줘야함
         //caver에서 wallet 생성 후 privateKey와 Address를 돌려줌
         //const account = caver.klay.accounts.create();
@@ -122,19 +126,9 @@ db.signup2 = function (u_email, u_pw, u_nick, _address, _privateK) { // authoriz
             db.klaytndb.end();
             return result;
         });
-    }
-    else {
-        var emailError = {
-            "name": 'email 중복',
-            "errors": {}
-        };
-        emailError.errors = { message: 'Another user is using same email' };
-        db.klaytndb.end();
-        return emailError;
-    }
 };
 
-db.find_pw_auth_indentity1 = function (u_email) {
+db.find_pw_auth_identity1 = function (u_email) {
     db.klaytndb.connect();
     var params = [u_email];
     var sql = "SELECT count(email) as total FROM userInfo WHERE email = ?";
@@ -147,7 +141,7 @@ db.find_pw_auth_indentity1 = function (u_email) {
     });
 };
 
-db.find_pw_auth_indentity2 = function (u_email, authorize_text) {
+db.find_pw_auth_identity2 = function (u_email, authorize_text) {
     db.klaytndb.connect();
     var params = [u_email, authorize_text];
     var sql = "INSERT INTO userAuth (email, code) VALUES (?, ?)";
@@ -160,7 +154,7 @@ db.find_pw_auth_indentity2 = function (u_email, authorize_text) {
     });
 };
 
-db.auth_indentity_code = function (u_email) { //DB에서 해당 이메일로 들어온 인증코드 리턴 부분에 쓰임
+db.auth_identity_code = function (u_email) { //DB에서 해당 이메일로 들어온 인증코드 리턴 부분에 쓰임
     db.klaytndb.connect();
     var params = [u_email];
     var sql = "SELECT code FROM userAuth WHERE email = ?";
@@ -173,7 +167,7 @@ db.auth_indentity_code = function (u_email) { //DB에서 해당 이메일로 들
     });
 };
 
-db.find_pw_auth_indentity4 = function (u_email) {
+db.find_pw_auth_identity4 = function (u_email) {
     db.klaytndb.connect();
     var sql1 = "DELETE FROM userAuth WHERE email = ?";
     var params1 = [u_email];
@@ -201,7 +195,11 @@ db.modify_pw = function (_session, m_pw) {
             var sql2 = "UPDATE userInfo SET password = ? WHERE email = ?"
             var params2 = [m_pw, result[0].email];
             db.klaytndb.query(sql2, params2, function (err, result, fields) {
-                if (err) console.log(err); // pw 변경 성공
+                if (err) 
+                {
+                    console.log(err);
+                    return false;
+                } // pw 변경 성공
                 else {
                     var codeSuccess = {
                     "name": 'Modify password',
@@ -209,7 +207,7 @@ db.modify_pw = function (_session, m_pw) {
                     };
                     codeSuccess.data = { message: 'Success to modify password!' };
                     db.klaytndb.end();
-                    return codeSuccess;
+                    return true;
                 }
             });
         }
