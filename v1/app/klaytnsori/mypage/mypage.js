@@ -24,11 +24,11 @@ mypage.get('/',function(req,res,next){
   if(!isValid) return res.json(result.successFalse(validationError));
   else next();
 }, function(req, res){
-  var _session = req.query.session_id;
+  var userSession = req.query.session_id;
   //DB에서 session_id를 받아서 해당 유저의 account address 반환
-
+  var userAccount = db.noname(userSession);
   var data = {
-    account_address : _address
+    account_address : userAccount
   };
   return res.json(result.successTrue(data));
 });
@@ -57,11 +57,15 @@ mypage.get('/transaction', function(req,res,next){
   if(!isValid) return res.json(result.successFalse(validationError));
   else next();
 }, function(req,res,next){
-  var _session = req.query.session_id;
+  var userSession = req.query.session_id;
+
   //DB에서 세션 아이디로 해당 유저의 block리스트와 계좌를 반환
-
+  var userTransaction = db.transaction(userSession);
   //caver에서 block리스트와 유저 계좌보내면 트랜잭션 리스트를 보내줌
+  for(var i = 0; i < userTransaction.block_num.length; i++)
+  {
 
+  }
 
 });
 
