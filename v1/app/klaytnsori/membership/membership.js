@@ -118,7 +118,7 @@ membership.post('/signup', function(req, res, next){
     var userNickname = req.body.nickname;
     //DB에서 해당 이메일 중복 여부 확인 후 count값으로 리턴
     var overlapCount = db.signup1(userEmail);
-    if(overlapCount == 0){
+    if(overlapCount){
       var data = {
         "email" : userEmail,
         "password" : userPassword,
