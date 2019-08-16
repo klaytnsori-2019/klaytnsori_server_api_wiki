@@ -26,7 +26,7 @@ mypage.get('/',function(req,res,next){
 }, function(req, res){
   var _session = req.query.session_id;
   //DB에서 session_id를 받아서 해당 유저의 account address 반환
-  
+
   var data = {
     account_address : _address
   };
