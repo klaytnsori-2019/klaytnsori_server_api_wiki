@@ -17,16 +17,18 @@ mypageCaver.showTransactions = async function(_blockNumList){
             value = decoder(receipt.input);
         }
 
-        cav.caver.klay.getBlock().then((result)=>{
-            var data = {
-                "isReceived" : b_isReceived,
-                "from" : receipt.from,
-                "to" : receipt.to,
-                "value" : value,
-                "timestamp" : result.timestamp
-            }
-            transactions.push(data);
-        });
+        var block = cav.caver.klay.getBlock();
+
+        var data = {
+            "isReceived" : b_isReceived,
+            "from" : receipt.from,
+            "to" : receipt.to,
+            "value" : value,
+            "timestamp" : block.timestamp
+        };
+
+        transactions.push(data);
+        
     }
 
     return transactions;
@@ -35,8 +37,9 @@ mypageCaver.showTransactions = async function(_blockNumList){
 mypageCaver.showMyKlay = async function(_address){
 
     var balance = await cav.caver.klay.getBalance(_address);
-    return cav.caver.utils.fromPeb(balance, 'KLAY');
+    //return cav.caver.utils.fromPeb(balance, 'KLAY');
     
+    return balance;
 }
 
 module.exports = mypageCaver;
