@@ -17,7 +17,7 @@ mypageCaver.showTransactions = async function(_blockNumList){
             value = decoder(receipt.input);
         }
 
-        var block = cav.caver.klay.getBlock();
+        var block = await cav.caver.klay.getBlock();
 
         var data = {
             "isReceived" : b_isReceived,
