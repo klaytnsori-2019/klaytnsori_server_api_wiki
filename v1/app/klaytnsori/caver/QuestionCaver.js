@@ -17,7 +17,7 @@ questionCaver.putReward = async function(_address, _privateKey, _value){
         to:   config.contractAddress,
         data: funcData,
         gas:  '300000',
-        value: caver.utils.toPeb(_value, 'KLAY'),
+        value: cav.caver.utils.toPeb(_value, 'KLAY'),
     }, _privateKey)
 
     cav.caver.klay.sendTransaction({
@@ -40,7 +40,7 @@ questionCaver.getReward = async function(_address, _privateKey, _questionerAddre
             type: 'uint256',
             name: '_value'
         }]
-    }, [_questionerAddress, _value]);
+    }, [_questionerAddress, cav.caver.utils.toPeb(_value,'KLAY')]);
 
     var rawTransaction = await cav.caver.klay.accounts.signTransaction({
         type: 'FEE_DELEGATED_SMART_CONTRACT_EXECUTION',

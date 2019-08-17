@@ -3,21 +3,22 @@ var decoder = require('../../../../Decoder');
 
 var mypageCaver = {};
 
-mypageCaver.showTransactions = async function(_blockNumList){
+mypageCaver.showTransactions = async function(_txList){
 
     var transactions = new Array;
 
-    for(var txHash in _blockNumList){
+    for(var i in _txList){
+        var txHash = _txList[i];
         var receipt = await cav.caver.klay.getTransactionReceipt(txHash);
         var b_isReceived = false;
         var value = receipt.value;
 
-        if(recepit.value == 0){
+        if(receipt.value == 0){
             b_isReceived = true;
             value = decoder(receipt.input);
         }
 
-        var block = await cav.caver.klay.getBlock();
+        var block = await cav.caver.klay.getBlock(receipt.blockNumber);
 
         var data = {
             "isReceived" : b_isReceived,
@@ -26,9 +27,8 @@ mypageCaver.showTransactions = async function(_blockNumList){
             "value" : value,
             "timestamp" : block.timestamp
         };
-
-        transactions.push(data);
         
+        transactions.push(data);   
     }
 
     return transactions;
@@ -37,9 +37,7 @@ mypageCaver.showTransactions = async function(_blockNumList){
 mypageCaver.showMyKlay = async function(_address){
 
     var balance = await cav.caver.klay.getBalance(_address);
-    //return cav.caver.utils.fromPeb(balance, 'KLAY');
-    
-    return balance;
+    return cav.caver.utils.fromPeb(balance, 'KLAY');
 }
 
 module.exports = mypageCaver;
