@@ -50,7 +50,7 @@ questionCaver.getReward = async function(_address, _privateKey, _questionerAddre
         gas:  '300000',
     }, _privateKey);
 
-    var receipt = awaitcav.caver.klay.sendTransaction({
+    var receipt = await cav.caver.klay.sendTransaction({
         senderRawTransaction: senderRawTransaction,
         feePayer: config.feePayerAddress,
     });
