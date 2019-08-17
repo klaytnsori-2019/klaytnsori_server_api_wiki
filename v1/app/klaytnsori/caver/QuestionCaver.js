@@ -11,7 +11,7 @@ questionCaver.putReward = async function(_address, _privateKey, _value){
         inputs: [],
     }, []);
 
-    var rawTransaction = await cav.caver.klay.accounts.signTransaction({
+    var { rawTransaction: senderRawTransaction } = await cav.caver.klay.accounts.signTransaction({
         type: 'FEE_DELEGATED_SMART_CONTRACT_EXECUTION',
         from: _address,
         to:   config.contractAddress,
@@ -21,7 +21,7 @@ questionCaver.putReward = async function(_address, _privateKey, _value){
     }, _privateKey)
 
     cav.caver.klay.sendTransaction({
-        senderRawTransaction: rawTransaction,
+        senderRawTransaction: senderRawTransaction,
         feePayer: config.feePayerAddress,
     }).then(function(receipt){
         return receipt;
@@ -42,7 +42,7 @@ questionCaver.getReward = async function(_address, _privateKey, _questionerAddre
         }]
     }, [_questionerAddress, cav.caver.utils.toPeb(_value,'KLAY')]);
 
-    var rawTransaction = await cav.caver.klay.accounts.signTransaction({
+    var { rawTransaction: senderRawTransaction } = await cav.caver.klay.accounts.signTransaction({
         type: 'FEE_DELEGATED_SMART_CONTRACT_EXECUTION',
         from: _address,
         to:   config.contractAddress,
@@ -51,7 +51,7 @@ questionCaver.getReward = async function(_address, _privateKey, _questionerAddre
     }, _privateKey);
 
     cav.caver.klay.sendTransaction({
-        senderRawTransaction: rawTransaction,
+        senderRawTransaction: senderRawTransaction,
         feePayer: config.feePayerAddress,
     }).then(function(receipt){
         return receipt;
