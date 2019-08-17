@@ -3,7 +3,7 @@ var config = {};
 config.feePayerAddress = '0xAC66A2c9262B7398Aa397A7b14EF8838C83CFB32';
 config.feePayerPrivateKey = '0x45019c2a582a35551b807d79e19f60505381a7eaee0cea8cbb13ac12ac084144';
 
-config.contractAddress = '0xacf85aF55002687107eF3a16cB3F49161685bC9D';
+config.contractAddress = '0x6f50DE61ae73290A9b24bc56E2b7850f150564Dd';
 config.ABI = 
 [
 	{
@@ -18,6 +18,10 @@ config.ABI =
 	{
 		"constant": false,
 		"inputs": [
+			{
+				"name": "_questionerAddress",
+				"type": "address"
+			},
 			{
 				"name": "_value",
 				"type": "uint256"
@@ -43,7 +47,7 @@ config.ABI =
 	{
 		"constant": true,
 		"inputs": [],
-		"name": "fee_payer",
+		"name": "feePayer",
 		"outputs": [
 			{
 				"name": "",
@@ -58,6 +62,25 @@ config.ABI =
 		"constant": true,
 		"inputs": [],
 		"name": "getBalance",
+		"outputs": [
+			{
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [
+			{
+				"name": "_address",
+				"type": "address"
+			}
+		],
+		"name": "getQuestionerBalance",
 		"outputs": [
 			{
 				"name": "",
