@@ -20,13 +20,13 @@ questionCaver.putReward = async function(_address, _privateKey, _value){
         value: cav.caver.utils.toPeb(_value, 'KLAY'),
     }, _privateKey)
 
-    cav.caver.klay.sendTransaction({
+    var receipt = await cav.caver.klay.sendTransaction({
         senderRawTransaction: senderRawTransaction,
         feePayer: config.feePayerAddress,
-    }).then(function(receipt){
-        return receipt;
-    })
-}
+    });
+
+    return receipt;
+};
 
 questionCaver.getReward = async function(_address, _privateKey, _questionerAddress,_value){
 
@@ -50,12 +50,12 @@ questionCaver.getReward = async function(_address, _privateKey, _questionerAddre
         gas:  '300000',
     }, _privateKey);
 
-    cav.caver.klay.sendTransaction({
+    var receipt = awaitcav.caver.klay.sendTransaction({
         senderRawTransaction: senderRawTransaction,
         feePayer: config.feePayerAddress,
-    }).then(function(receipt){
-        return receipt;
-    })
-}
+    });
+
+    return receipt;
+};
 
 module.exports = questionCaver;

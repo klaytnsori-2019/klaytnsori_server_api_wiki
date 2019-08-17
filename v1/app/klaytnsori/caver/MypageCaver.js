@@ -32,12 +32,12 @@ mypageCaver.showTransactions = async function(_txList){
     }
 
     return transactions;
-}
+};
 
 mypageCaver.showMyKlay = async function(_address){
 
     var balance = await cav.caver.klay.getBalance(_address);
     return cav.caver.utils.fromPeb(balance, 'KLAY');
-}
+};
 
 module.exports = mypageCaver;

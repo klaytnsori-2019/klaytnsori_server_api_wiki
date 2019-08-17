@@ -10,20 +10,20 @@ membershipCaver.addAccount = function(_privateKey){
     }catch(e){
         return false;
     }
-}
+};
 
 membershipCaver.removeAccount = function(_address){
 
     var result = cav.caver.klay.accounts.wallet.remove(_address);
 
     return result;
-}
+};
 
 membershipCaver.createAccount = function(){
 
     var account = cav.caver.klay.accounts.create();
 
     return account;
-}
+};
 
 module.exports = membershipCaver;
