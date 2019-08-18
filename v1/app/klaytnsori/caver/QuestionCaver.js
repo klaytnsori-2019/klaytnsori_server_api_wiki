@@ -40,13 +40,9 @@ questionCaver.putReward = async function(_address, _privateKey, _value){
 
     var block = await cav.caver.klay.getBlock(receipt.blockNumber);
 
-    var data = {
-        receipt: receipt,
-        timestamp: block.timestamp,
-        feeReceipt: feeReceipt
-    };
+    receipt.timestamp = block.timestamp;
 
-    return data;
+    return receipt;
 };
 
 questionCaver.getReward = async function(_address, _privateKey, _questionerAddress,_value){
@@ -78,12 +74,9 @@ questionCaver.getReward = async function(_address, _privateKey, _questionerAddre
 
     var block = await cav.caver.klay.getBlock(receipt.blockNumber);
 
-    var data = {
-        receipt: receipt,
-        timestamp: block.timestamp
-    }
+    receipt.timestamp = block.timestamp;
 
-    return data;
+    return receipt;
 };
 
 module.exports = questionCaver;
