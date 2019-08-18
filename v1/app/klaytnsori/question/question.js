@@ -171,6 +171,7 @@ question.get('/question_list',function(req,res,next){
   var questionState = req.body.question_state;
   var currentTime = new Date().getTime();
   var dateLimit = 604800;
+
   if(!req.body.category){
     if(!req.body.sort_num){
       if(!req.body.keyword){
@@ -221,48 +222,23 @@ question.get('/question_list',function(req,res,next){
     else{
       //sortnum이 있는경우
       var sortNum = req.body.sort_num;
-      if(!req.body.keyword){
-        if(questionState){
-          db.function(questionState, sortNum, (rows)=>{
-            return res.json(result.successTrue(rows));
-          });
-        }
-        else{
-          if(selectEnable){
-            //dateLimit보다 적은거 뽑기
-            db.function(currentTime, dateLimit, sortNum, (rows)=>{
-              return res.json(result.successTrue(rows));
-            });
-          }
-          else{
-            //dateLimit보다 높은거 뽑기
-            db.function(currentTime, dateLimit, sortNum, (rows)=>{
-              return res.json(result.successTrue(rows));
-            });
-          }
-        }
+      if(questionState){
+        db.function(questionState, sortNum, (rows)=>{
+          return res.json(result.successTrue(rows));
+        });
       }
       else{
-        //keyword와 sort가 있는 경우
-        var questionKeyword = req.body.keyword;
-        if(questionState){
-          db.function(questionState, questionKeyword, sortNum, (rows)=>{
+        if(selectEnable){
+          //dateLimit보다 적은거 뽑기
+          db.function(currentTime, dateLimit, sortNum, (rows)=>{
             return res.json(result.successTrue(rows));
           });
         }
         else{
-          if(selectEnable){
-            //dateLimit보다 적은거 뽑기
-            db.function(currentTime, dateLimit,  questionKeyword, sortNum, (rows)=>{
-              return res.json(result.successTrue(rows));
-            });
-          }
-          else{
-            //dateLimit보다 높은거 뽑기
-            db.function(currentTime, dateLimit,  questionKeyword, sortNum, (rows)=>{
-              return res.json(result.successTrue(rows));
-            });
-          }
+          //dateLimit보다 높은거 뽑기
+          db.function(currentTime, dateLimit, sortNum, (rows)=>{
+            return res.json(result.successTrue(rows));
+          });
         }
       }
     }
@@ -270,98 +246,23 @@ question.get('/question_list',function(req,res,next){
   else{
     //category가 있는 경우
     var questionCategory = req.body.category;
-    if(!req.body.sort_num){
-      if(!req.body.keyword){
-        if(questionState){
-          db.function(questionState, questionCategory, (rows)=>{
-            return res.json(result.successTrue(rows));
-          });
-        }
-        else{
-          if(selectEnable){
-            //dateLimit보다 적은거 뽑기
-            db.function(currentTime, dateLimit, questionCategory, (rows)=>{
-              return res.json(result.successTrue(rows));
-            });
-          }
-          else{
-            //dateLimit보다 높은거 뽑기
-            db.function(currentTime, dateLimit, questionCategory, (rows)=>{
-              return res.json(result.successTrue(rows));
-            });
-          }
-        }
-      }
-      else{
-        //keyword가 있는 경우
-        var questionKeyword = req.body.keyword;
-        if(questionState){
-          db.function(questionState, questionKeyword, questionCategory, (rows)=>{
-            return res.json(result.successTrue(rows));
-          });
-        }
-        else{
-          if(selectEnable){
-            //dateLimit보다 적은거 뽑기
-            db.function(currentTime, dateLimit,  questionKeyword, questionCategory, (rows)=>{
-              return res.json(result.successTrue(rows));
-            });
-          }
-          else{
-            //dateLimit보다 높은거 뽑기
-            db.function(currentTime, dateLimit,  questionKeyword, questionCategory, (rows)=>{
-              return res.json(result.successTrue(rows));
-            });
-          }
-        }
-      }
+    if(questionState){
+      db.function(questionState, questionCategory, (rows)=>{
+        return res.json(result.successTrue(rows));
+      });
     }
     else{
-      //sortnum이 있는경우
-      var sortNum = req.body.sort_num;
-      if(!req.body.keyword){
-        if(questionState){
-          db.function(questionState, sortNum, questionCategory, (rows)=>{
-            return res.json(result.successTrue(rows));
-          });
-        }
-        else{
-          if(selectEnable){
-            //dateLimit보다 적은거 뽑기
-            db.function(currentTime, dateLimit, sortNum, questionCategory, (rows)=>{
-              return res.json(result.successTrue(rows));
-            });
-          }
-          else{
-            //dateLimit보다 높은거 뽑기
-            db.function(currentTime, dateLimit, sortNum, questionCategory, (rows)=>{
-              return res.json(result.successTrue(rows));
-            });
-          }
-        }
+      if(selectEnable){
+        //dateLimit보다 적은거 뽑기
+        db.function(currentTime, dateLimit, questionCategory, (rows)=>{
+          return res.json(result.successTrue(rows));
+        });
       }
       else{
-        //keyword와 sort가 있는 경우
-        var questionKeyword = req.body.keyword;
-        if(questionState){
-          db.function(questionState, questionKeyword, sortNum, questionCategory, (rows)=>{
-            return res.json(result.successTrue(rows));
-          });
-        }
-        else{
-          if(selectEnable){
-            //dateLimit보다 적은거 뽑기
-            db.function(currentTime, dateLimit,  questionKeyword, sortNum, questionCategory, (rows)=>{
-              return res.json(result.successTrue(rows));
-            });
-          }
-          else{
-            //dateLimit보다 높은거 뽑기
-            db.function(currentTime, dateLimit,  questionKeyword, sortNum, questionCategory, (rows)=>{
-              return res.json(result.successTrue(rows));
-            });
-          }
-        }
+        //dateLimit보다 높은거 뽑기
+        db.function(currentTime, dateLimit, questionCategory, (rows)=>{
+          return res.json(result.successTrue(rows));
+        });
       }
     }
   }
