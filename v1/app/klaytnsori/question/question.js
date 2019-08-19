@@ -1,7 +1,7 @@
 var express = require('express');
 var question = express.Router();
 var result = require('./../../../../result');
-var caver = require('../caver/MembershipCaver.js');
+var caver = require('../caver/QuestionCaver.js');
 var db = require('./../../../../klaytndb.js');
 
 /*
@@ -72,19 +72,18 @@ question.post('/insert_question', function(req,res,next){
   //DB에서 세션 아이디로 해당 유저의 계좌를 가져옴
   //caver에서 해당 유저의 계좌와 klay로 전송 후 트랜잭션 명세서 리턴
   //DB에 필요 정보 저장 후 question_id 리턴
-  db.noname(userSession, (rows)=>{
-    var userAccount = rows;
-    var userPrivatekey;
+  db.getWalletaddressAndPK(userSession, (rows)=>{
+    var userAccount = rows[0].wallet_address;
+    var userPrivatekey = rows[0].private_key;
     caver.putReward(userAccount, userPrivatekey, questionKlay).then((receipt)=>{
       var transactionHexTime = receipt.timestamp;
       var transactionUnixTime = parseInt(transactionHexTime, 16);
       var transactionDate = new Date(transactionUnixTime);
       var transactionHash = receipt.transactionHash;
       var questionRemainKlay = receipt.klay;
-      db.function(userAccount, transactionHash);
-
+      db.insert_question2(userAccount, transactionHash);
       db.insert_question1(userSession, questionTitle, questionRemainKlay, questionContent, questionCategory, transactionDate, (rows)=>{
-        var questionId = rows.question_id;
+        var questionId = rows[0].question_id;
         var data = {
           question_id : questionId
         };
@@ -171,101 +170,12 @@ question.get('/question_list',function(req,res,next){
   var questionState = req.body.question_state;
   var currentTime = new Date().getTime();
   var dateLimit = 604800;
+  var questionCategory = req.body.category;
+  var questionSort = req.body.sort_num;
+  var questionKeyword = req.body.keyword;
+  db.function(questionState, currentTime, dateLimit, sort_num, questionKeyword, questionCategory, (rows)=>{
 
-  if(!req.body.category){
-    if(!req.body.sort_num){
-      if(!req.body.keyword){
-        if(questionState){
-          db.function(questionState, (rows)=>{
-            return res.json(result.successTrue(rows));
-          });
-        }
-        else{
-          if(selectEnable){
-            //dateLimit보다 적은거 뽑기
-            db.function(currentTime, dateLimit, (rows)=>{
-              return res.json(result.successTrue(rows));
-            });
-          }
-          else{
-            //dateLimit보다 높은거 뽑기
-            db.function(currentTime, dateLimit, (rows)=>{
-              return res.json(result.successTrue(rows));
-            });
-          }
-        }
-      }
-      else{
-        //keyword만 있는 경우
-        var questionKeyword = req.body.keyword;
-        if(questionState){
-          db.function(questionState, questionKeyword, (rows)=>{
-            return res.json(result.successTrue(rows));
-          });
-        }
-        else{
-          if(selectEnable){
-            //dateLimit보다 적은거 뽑기
-            db.function(currentTime, dateLimit,  questionKeyword, (rows)=>{
-              return res.json(result.successTrue(rows));
-            });
-          }
-          else{
-            //dateLimit보다 높은거 뽑기
-            db.function(currentTime, dateLimit,  questionKeyword, (rows)=>{
-              return res.json(result.successTrue(rows));
-            });
-          }
-        }
-      }
-    }
-    else{
-      //sortnum이 있는경우
-      var sortNum = req.body.sort_num;
-      if(questionState){
-        db.function(questionState, sortNum, (rows)=>{
-          return res.json(result.successTrue(rows));
-        });
-      }
-      else{
-        if(selectEnable){
-          //dateLimit보다 적은거 뽑기
-          db.function(currentTime, dateLimit, sortNum, (rows)=>{
-            return res.json(result.successTrue(rows));
-          });
-        }
-        else{
-          //dateLimit보다 높은거 뽑기
-          db.function(currentTime, dateLimit, sortNum, (rows)=>{
-            return res.json(result.successTrue(rows));
-          });
-        }
-      }
-    }
-  }
-  else{
-    //category가 있는 경우
-    var questionCategory = req.body.category;
-    if(questionState){
-      db.function(questionState, questionCategory, (rows)=>{
-        return res.json(result.successTrue(rows));
-      });
-    }
-    else{
-      if(selectEnable){
-        //dateLimit보다 적은거 뽑기
-        db.function(currentTime, dateLimit, questionCategory, (rows)=>{
-          return res.json(result.successTrue(rows));
-        });
-      }
-      else{
-        //dateLimit보다 높은거 뽑기
-        db.function(currentTime, dateLimit, questionCategory, (rows)=>{
-          return res.json(result.successTrue(rows));
-        });
-      }
-    }
-  }
+  })
 });
 
 /*

@@ -37,11 +37,11 @@ membership.post('/login', function(req, res, next){
    //privatekey로 caver에서 wallet 추가
    //db에 email을 보내서 세션 받기.
    db.login1(userEmail, userPassword, (rows)=>{
-     var userPrivatekey = rows;
+     var userPrivatekey = rows[0].private_key;
      var caverOk = caver.addAccount(uesrPrivatekey);
      if(caverOk){
        db.login2(userEmail, userPassword, (rows)=>{
-         var userSession = rows;
+         var userSession = rows[0].session_id;
          var data = {
            "session_id" : userSession
          };
@@ -72,7 +72,7 @@ membership.post('/logout', function (req, res) {
     //DB에서 session_id 행 삭제
     //caver에서 들어온 계좌를 wallet에서 제거
     db.logout1(userSession, (rows)=>{
-      var userAccount = rows;
+      var userAccount = rows[0].wallet_address;
       var caverOk = caver.removeAccount(userAccount);
       if(caverOk){
         db.logout2(userSession);
@@ -125,7 +125,7 @@ membership.post('/signup', function(req, res, next){
     var userNickname = req.body.nickname;
     //DB에서 해당 이메일 중복 여부 확인 후 count값으로 리턴
     db.signup1(userEmail, (rows)=>{
-      var overlapCount = rows;
+      var overlapCount = rows[0].total;
       if(overlapCount){
         var data = {
           "email" : userEmail,
@@ -171,7 +171,7 @@ membership.post('/find_pw_auth_code', function(req, res, next){
     var userEmail = req.body.email;
     //DB에서 해당 email이 있는지 확인 후 count로 리턴
     db.find_pw_auth_identity1(userEmail, (rows)=>{
-      var emailCount = rows;
+      var emailCount = rows[0].total;
       if(emailCount == 0){
         var authorizeText = "";
         var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -242,7 +242,7 @@ membership.post('/find_pw_auth_identity', function (req, res, next) {
   var string1 = req.body.authorize_text;
   //DB에서 해당 이메일로 저장되어 있는 인증코드 리턴
   db.auth_identity_code(userEmail, (rows)=>{
-    var string2 = rows;
+    var string2 = rows[0].code;
     if(string1 != string2){
       var codeError = {
           "name": 'Authorize code Error',
@@ -254,7 +254,7 @@ membership.post('/find_pw_auth_identity', function (req, res, next) {
     else{
       //DB에서 해당 이메일의 매칭되어있는 password 리턴
       db.find_pw_auth_identity4(userEmail, (row)=>{
-        var userPassword = row;
+        var userPassword = row[0].password;
         var data = {
           "password" : userPassword
         };
@@ -347,7 +347,7 @@ membership.post('/authorize_code', function (req, res, next) {
     }
     //DB에서 해당 이메일과 인증번호를 인증테이블에 저장 후 true 리턴
     db.find_pw_auth_identity2(userEmail, authorizeText, (rows)=>{
-      var dbOk = rows;
+      var dbOk = rows[0];
       if(dbOk){
         var data = {
             "email" : userEmail,
@@ -408,7 +408,7 @@ membership.post('/authorize_identity', function (req, res, next) {
   var string1 = req.body.authorize_text;
   //DB에서 해당 이메일로 들어온 인증코드 리턴
   db.auth_identity_code(userEmail, (rows)=>{
-    var string2 = rows;
+    var string2 = rows[0].code;
     if(string1 == string2){
       //caver에서 새로운 계좌 생성 후 address와 privatekey 리턴
       var userCaver = caver.createAccount();

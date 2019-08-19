@@ -1,7 +1,7 @@
 var express = require('express');
 var mypage = express.Router();
 var result = require('./../../../../result');
-var caver = require('../caver/MembershipCaver.js');
+var caver = require('../caver/MypageCaver.js');
 var db = require('./../../../../klaytndb.js');
 
 /*
@@ -29,7 +29,7 @@ mypage.get('/',function(req,res,next){
   var userSession = req.query.session_id;
   //DB에서 session_id를 받아서 해당 유저의 account address 반환
   db.noname(userSession, (rows)=>{
-    var userAccount = rows;
+    var userAccount = rows[0].wallet_address;
     var data = {
       account_address : userAccount
     };
@@ -64,7 +64,7 @@ mypage.get('/transaction', function(req,res,next){
   var userSession = req.query.session_id;
   //DB에서 세션 아이디로 해당 유저의 block리스트와 계좌를 반환
   //caver에서 block리스트와 유저 계좌보내면 트랜잭션 리스트를 보내줌
-  db.transaction(userSession, (rows)=>{
+  db.showTransaction(userSession, (rows)=>{
     var transactionList = rows;
     caver.showTransactions(transactionList).then((transactions)=>{
       for(var i in transactions){
@@ -206,13 +206,14 @@ mypage.get('/my_remain_klay', function(req,res,next){
   else next();
 }, function(req,res,next){
   var userSession = req.query.session_id;
-  db.noname(userSession,(rows)=>{
-    var userAccount = rows;
-    var klay = caver.showMyKlay(userAccount);
-    var data = {
-      "Klay" : klay
-    };
-    return res.json(result.successTrue(data));
+  db.my_remain_klay(userSession,(rows)=>{
+    var userAccount = rows[0].wallet_address;
+    var klay = caver.showMyKlay(userAccount).then((klay)=>{
+      var data = {
+        "Klay" : klay
+      };
+      return res.json(result.successTrue(data));
+    });
   });
 });
 
