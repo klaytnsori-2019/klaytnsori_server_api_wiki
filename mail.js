@@ -8,11 +8,17 @@ mail.transporter = nodemailer.createTransport({
   }
 });
 mail.mailOption = function(_email, _text){
+  var mailcontent = function(_text){
+    var head = "Hello! Thanks to join our service!\n";
+    var mid = "Authorize code is ";
+    var tail = "\nThanks you.";
+    return head+mid+_text+tail;
+  };
   return {
     from : 'tyzlddy@gmail.com',
     to : _email,
     subject: 'nodemailer test',
-    text : _text
+    text : mailcontent(_text)
   };
 };
 
