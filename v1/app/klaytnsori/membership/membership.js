@@ -24,7 +24,7 @@ membership.post('/login', function(req, res, next){
         validationError.errors.email = { message: 'Email is empty' };
     }
     if (!req.body.password) {
-        isValid = false;F
+        isValid = false;
         validationError.errors.password = { message: 'Password is empty' };
     }
     if (!isValid) return res.json(result.successFalse(validationError));
@@ -36,25 +36,39 @@ membership.post('/login', function(req, res, next){
    //email과 pw를 보내 디비에서 privatekey를 가져옴
    //privatekey로 caver에서 wallet 추가
    //db에 email을 보내서 세션 받기.
-   db.login1(userEmail, userPassword, (rows)=>{
-     var userPrivatekey = rows[0].private_key;
-     var caverOk = caver.addAccount(uesrPrivatekey);
-     if(caverOk){
-       db.login2(userEmail, userPassword, (rows)=>{
-         var userSession = rows[0].session_id;
-         var data = {
-           "session_id" : userSession
-         };
-         return res.json(result.successTrue(data));
-       });
-     }
-     else {
-       var accountError = {
-           "name": 'account 중복',
+   db.signup1(userEmail, (row)=>{
+     var verificationNum = row;
+     if(verificationNum){
+       var dbError = {
+           "name": 'DB',
            "errors": {}
        };
-       accountError.errors.email = { message: 'Already user account in wallet' };
-       return res.json(result.successFalse(accountError));
+       dbError.errors.db = { message: 'Cannot find information in userInfo table' };
+       return res.json(result.successFalse(dbError));
+     }
+     else{
+       db.login1(userEmail, userPassword, (rows)=>{
+         var userPrivatekey = rows[0].private_key;
+         var caverOk = caver.addAccount(userPrivatekey);
+         if(caverOk){
+           db.login2(userEmail, (rows)=>{
+             var userSession = rows[0].session_id;
+             console.log(userSession);
+             var data = {
+               "session_id" : userSession
+             };
+             return res.json(result.successTrue(data));
+           });
+         }
+         else {
+           var accountError = {
+               "name": 'account',
+               "errors": {}
+           };
+           accountError.errors.account = { message: 'Already user account in wallet' };
+           return res.json(result.successFalse(accountError));
+         }
+       });
      }
    });
  });
@@ -75,9 +89,21 @@ membership.post('/logout', function (req, res) {
       var userAccount = rows[0].wallet_address;
       var caverOk = caver.removeAccount(userAccount);
       if(caverOk){
-        db.logout2(userSession);
-        var data = { message: 'Thanks to use our service' };
-        return res.json(result.successTrue(data));
+        db.logout2(userSession, (rows)=>{
+          var dbOk = rows;
+          if(dbOk){
+            var data = { message: 'Thanks to use our service' };
+            return res.json(result.successTrue(data));
+          }
+          else{
+            var dbError = {
+                "name": 'DB',
+                "errors": {}
+            };
+            dbError.errors.db = { message: 'Cannot delete in userSession table' };
+            return res.json(result.successFalse(dbError));
+          }
+        });
       }
       else{
         var data = { message : 'Can not Remove account from wallet.'};
@@ -125,7 +151,7 @@ membership.post('/signup', function(req, res, next){
     var userNickname = req.body.nickname;
     //DB에서 해당 이메일 중복 여부 확인 후 count값으로 리턴
     db.signup1(userEmail, (rows)=>{
-      var overlapCount = rows[0].total;
+      var overlapCount = rows;
       if(overlapCount){
         var data = {
           "email" : userEmail,
@@ -136,7 +162,7 @@ membership.post('/signup', function(req, res, next){
       }
       else {
         var emailError = {
-            "name": 'email 중복',
+            "name": 'email',
             "errors": {}
         };
         emailError.errors.email = { message: 'Another user is using same email' };
@@ -192,7 +218,7 @@ membership.post('/find_pw_auth_code', function(req, res, next){
           }
           else{
             var dbError = {
-                "name": 'DB 저장 불가',
+                "name": 'DB',
                 "errors": {}
             };
             dbError.errors.db = { message: 'Cannot insert information in authUser table' };
@@ -202,7 +228,7 @@ membership.post('/find_pw_auth_code', function(req, res, next){
       }
       else{
         var emailError = {
-            "name": 'email 없음',
+            "name": 'email',
             "errors": {}
         };
         emailError.errors.email = { message: 'Cannot find email in DB' };
@@ -235,10 +261,15 @@ membership.post('/find_pw_auth_identity', function (req, res, next) {
         isValid = false;
         validationError.errors.authorize_text = { message: 'Authorize code is empty' };
     }
+    if(!req.body.password){
+      isValid = false;
+      validationError.errors.password = { message: 'New password is empty' };
+    }
     if(!isValid) return res.json(result.successFalse(validationError));
     else next();
 },function(req, res, next){
   var userEmail = req.body.email;
+  var userNewPassword = req.body.password;
   var string1 = req.body.authorize_text;
   //DB에서 해당 이메일로 저장되어 있는 인증코드 리턴
   db.auth_identity_code(userEmail, (rows)=>{
@@ -253,12 +284,20 @@ membership.post('/find_pw_auth_identity', function (req, res, next) {
     }
     else{
       //DB에서 해당 이메일의 매칭되어있는 password 리턴
-      db.find_pw_auth_identity4(userEmail, (row)=>{
-        var userPassword = row[0].password;
-        var data = {
-          "password" : userPassword
-        };
-        return res.json(result.successTrue(data));
+      db.changePassword(userEmail, userNewPassword, (row)=>{
+        var dbOk = row;
+        if(dbOk){
+          var data = {message: 'Update password!'};
+          return res.json(result.successTrue(data));
+        }
+        else{
+          var dbError = {
+              "name": 'DB',
+              "errors": {}
+          };
+          dbError.errors.db = { message: 'Cannot change password in userInfo table' };
+          return res.json(result.successFalse(dbError));
+        }
       });
     }
   });
@@ -301,7 +340,7 @@ membership.post('/modify_pw', function (req, res, next) {
       }
       else{
         var dbError = {
-            "name": 'DB 변경 오류',
+            "name": 'DB',
             "errors": {}
         };
         dbError.errors.db = { message: 'Cannot modify information in userInfo table' };
@@ -347,7 +386,7 @@ membership.post('/authorize_code', function (req, res, next) {
     }
     //DB에서 해당 이메일과 인증번호를 인증테이블에 저장 후 true 리턴
     db.find_pw_auth_identity2(userEmail, authorizeText, (rows)=>{
-      var dbOk = rows[0];
+      var dbOk = rows;
       if(dbOk){
         var data = {
             "email" : userEmail,
@@ -355,13 +394,13 @@ membership.post('/authorize_code', function (req, res, next) {
             "nickname" : userNickname,
             "authorize_text": authorizeText
           };
-          mail.transporter.sendMail(mail.mailOption(u_email,authorize_text), function(err, info){
+          mail.transporter.sendMail(mail.mailOption(userEmail,authorizeText), function(err, info){
             return res.json(result.successTrue(data));
           });
       }
       else{
         var dbError = {
-            "name": 'DB 저장 불가',
+            "name": 'DB',
             "errors": {}
         };
         dbError.errors.db = { message: 'Cannot insert information in authUser table' };
@@ -421,7 +460,7 @@ membership.post('/authorize_identity', function (req, res, next) {
         }
         else{
           var dbError = {
-              "name": 'DB 저장 불가',
+              "name": 'DB',
               "errors": {}
           };
           dbError.errors.db = { message: 'Cannot insert information in userInfo table' };
