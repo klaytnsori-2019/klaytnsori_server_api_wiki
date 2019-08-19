@@ -11,7 +11,7 @@ var db = require('./../../../../klaytndb.js');
 *Response
 *category list - Bring all category list(data type int) at DB
 */
-question.post('/category', function(req,res,next){
+question.get('/category', function(req,res,next){
   //DB에서 카테고리 정보 리스트 형태로 반환.
   db.category((rows)=>{
     var data = new Array;
@@ -305,7 +305,7 @@ question.post('/select_answer',function(req,res,next){
     var answerAccount = rows.account;
     if(selectEnable){
       db.function((rows)=>{
-        var answerPrivatekey = rows.;
+        var answerPrivatekey;
         var questionerAccount;
         var questionKlay;
         caver.getReward(answerAccount, answerPrivatekey, questionerAccount, questionKlay).then((receipt)=>{
@@ -319,7 +319,7 @@ question.post('/select_answer',function(req,res,next){
     }
     else{
       db.function((rows)=>{
-      var answerPrivatekey = rows.;
+      var answerPrivatekey;
       var questionerAccount;
       var questionKlay;
       var answerKlay = questionKlay*0.7;
@@ -335,6 +335,7 @@ question.post('/select_answer',function(req,res,next){
             var txHash = receipt.senderRawTransaction.transactionHash;
             db.function(txHash, (rows)=>{})
         });
+       }
       });
      });
     }
