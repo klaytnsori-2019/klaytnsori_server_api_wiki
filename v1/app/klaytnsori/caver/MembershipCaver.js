@@ -26,4 +26,11 @@ membershipCaver.createAccount = function(){
     return account;
 };
 
+// testing func
+membershipCaver.clearWallet = function(){
+
+    cav.caver.klay.accounts.wallet.clear();
+    console.log(cav.caver.klay.accounts.waller[0]);
+};
+
 module.exports = membershipCaver;
