@@ -59,13 +59,23 @@ db.login2 = function (u_email, callback) {
             var params3 = [result[0].max, u_email];
             db.klaytndb.query(sql3, params3, function (err, result, fields) {
                 if (err) {
-            console.log(err);
-            return callback(false);
-        }
+                    console.log(err);
+                    return callback(false);
+                }
                 else {
-                    console.log("db_login2_success!");
-                    //db.klaytndb.end();
-                    return callback(result); // session_id 반환
+                    var sql = "SELECT session_id FROM userSession WHERE email =?";
+                    var params = [u_email];
+                    db.klaytndb.query(sql, params, function (err, result, fields) {
+                        if (err) {
+                            console.log(err);
+                            return callback(false);
+                        }
+                        else {
+                            console.log("db_login2_success!");
+                            //db.klaytndb.end();
+                            return callback(result); // session_id 반환
+                        }
+                    });
                 }
             });
         }
@@ -190,8 +200,8 @@ db.signup2 = function (u_email, u_pw, u_nick, _address, _privateK, callback) { /
         } // 회원가입 성공
             else{
                 console.log("db_signup2_success!");
-            //db.klaytndb.end();
-            return callback(result);
+                //db.klaytndb.end();
+                return callback(true);
             }
         });
 };
@@ -207,8 +217,13 @@ db.find_pw_auth_identity1 = function (u_email, callback) {
         }
         else { // 해당 email 존재 여부 판단 1(존재) or 0(없음)
             //db.klaytndb.end();
-            console.log("db_find_pw_auth_identity1_success!");
-            return callback(result); // result[0].total = 0 or 1
+            if (result[0].total){ 
+                console.log("db_find_pw_auth_identity1_success!");
+                return callback(true); // 해당 이메일 존재
+            }
+            else{
+                return callback(false); // 해당 이메일 없음
+            }
         }
     });
 };
@@ -247,7 +262,7 @@ db.auth_identity_code = function (u_email, callback) { //DB에서 해당 이메�
     });
 };
 
-db.find_pw_auth_identity4 = function (u_email, callback) {
+db.find_pw_auth_identity4 = function (u_email, u_pw, callback) {
      //db.klaytndb.connect();
     var sql1 = "DELETE FROM userAuth WHERE email = ?";
     var params1 = [u_email];
@@ -257,8 +272,8 @@ db.find_pw_auth_identity4 = function (u_email, callback) {
             return callback(false);
         } // 인증 코드 삭제
     });
-    var params2 = [u_email]
-    var sql2 = "SELECT password FROM userInfo WHERE email = ?";
+    var params2 = [u_pw, u_email]
+    var sql2 = "UPDATE userInfo SET password = ? WHERE email = ?";
     db.klaytndb.query(sql2, params2, function (err, result, fields) {
         if (err) {
             console.log(err);
@@ -267,7 +282,7 @@ db.find_pw_auth_identity4 = function (u_email, callback) {
         else {
             console.log("db_find_pw_auth_identity4_success!");
             //db.klaytndb.end();
-            return callback(result); // pw 반환
+            return callback(true); // pw 변경 성공
         }
     });
 };
@@ -291,11 +306,6 @@ db.modify_pw = function (_session, m_pw, callback) {
                     return callback(false);
                 } // pw 변경 성공
                 else {
-                    var codeSuccess = {
-                    "name": 'Modify password',
-                    "data": {}
-                    };
-                    codeSuccess.data = { message: 'Success to modify password!' };
                     console.log("db_modify_pw_success!");
                     //db.klaytndb.end();
                     return callback(true);
@@ -428,25 +438,25 @@ db.my_question_list = function (session_id, callback) {
             var sql3 = "SELECT question_num FROM question WHERE email = ?";
             db.klaytndb.query(sql3, params2, function (err, result, fields) {
                 if (err) {
-            console.log(err);
-            return callback(false);
-        }
+                    console.log(err);
+                    return callback(false);
+                }
                 else {
                     var params3 = [result[0].question_num];
                     var sql4 = "SELECT count(is_selected) as total FROM answer WHERE question_num = ?";
                     db.klaytndb.query(sql4, params3, function (err, result, fields) {
                         if (err) {
-            console.log(err);
-            return callback(false);
-        }
+                            console.log(err);
+                            return callback(false);
+                        }
                         else {
                             if (result[0].total == 0) { // 답변 없는 경우
                                 var sql5 = "SELECT question.question_title, question.question_content, question.klay, category.category FROM question INNER JOIN category ON question.question_num = ?  AND question.category_num = category.category_num";
                                 db.klaytndb.query(sql5, params3, function (err, result, fields) {
                                     if (err) {
-            console.log(err);
-            return callback(false);
-        }
+                                        console.log(err);
+                                        return callback(false);
+                                    }
                                     else {
                                         result[0].is_selected = "false"; // 답변이 없으니 채택 여부 false
                                         console.log("db_my_question_list_success!");
@@ -459,9 +469,9 @@ db.my_question_list = function (session_id, callback) {
                                 var sql6 = "SELECT question.question_num, question.email, question.question_title, category.category, question.question_content, question.klay, question.time, answer.is_selected FROM question INNER JOIN answer ON question.question_num = ? AND question.question_num = answer.question_num INNER JOIN category ON question.category_num = category.category_num";
                                 db.klaytndb.query(sql6, params3, function (err, result, fields) {
                                     if (err) {
-            console.log(err);
-            return callback(false);
-        }
+                                        console.log(err);
+                                        return callback(false);
+                                    }
                                     else {
                                         console.log("db_my_question_list_success!");
                                         //db.klaytndb.end();
@@ -497,7 +507,7 @@ db.my_answer_list = function (session_id, callback) {
                 else {
                     //db.klaytndb.end();
                     console.log("db_my_answer_list_success!");
-                    return callback(result); // 답변 제목, 답변 내용, 채택 여부를 리스트로 반환
+                    return callback(result); // 질문 제목, 답변 내용, 채택 여부를 리스트로 반환
                 }
             });
         }
@@ -543,26 +553,26 @@ db.my_like_list = function (session_id, callback) {
         else {
             var params2 = [result[0].email];
             var sql2 = "SELECT email, answer_num FROM userLike WHERE email = ?";
-            db.klaytndb.query(sql2, params2, function (err, result, fields){
+            db.klaytndb.query(sql2, params2, function (err, result, fields) {
                 if (err) {
                     console.log(err);
                     return callback(false);
                 }
                 else {
                     var params3 = [result[0].email, result[0].answer_num];
-                var sql3 = "SELECT l1.question_num, l1.answer_num, count(l2.answer_num) as like_num FROM userLike as l1 JOIN userLike as l2 ON l1.email = ? AND l2.answer_num = ?";
-                db.klaytndb.query(sql3, params3, function (err, result, fields) {
-                    if (err) {
-                        console.log(err);
-                        return callback(false);
-                    }
-                    else {
-                        console.log("db_my_like_list_success!");
-                        //db.klaytndb.end();
-                        return callback(result);
-                    }
-                });
-            }
+                    var sql3 = "SELECT l1.question_num, l1.answer_num, count(l2.answer_num) as like_num FROM userLike as l1 JOIN userLike as l2 ON l1.email = ? AND l2.answer_num = ?";
+                    db.klaytndb.query(sql3, params3, function (err, result, fields) {
+                        if (err) {
+                            console.log(err);
+                            return callback(false);
+                        }
+                        else {
+                            console.log("db_my_like_list_success!");
+                            //db.klaytndb.end();
+                            return callback(result); // 질문 번호, 답변 번호, 라이크 수 반환
+                        }
+                    });
+                }
             });
         }
     });
@@ -628,6 +638,7 @@ db.category = function (callback) {
     });
 };
 
+
 db.insert_question1 = function (session_id, question_title, question_klay, question_content, category, trans_time, callback) {
     //db.klaytndb.connect();
     var sql = "SELECT count(*) as total FROM question";
@@ -642,21 +653,21 @@ db.insert_question1 = function (session_id, question_title, question_klay, quest
             var params = [session_id];
             db.klaytndb.query(sql, params, function (err, results, fields) {
                 if (err) {
-            console.log(err);
-            return callback(false);
-        }
+                    console.log(err);
+                    return callback(false);
+                }
                 else {
                     var params2 = [question_num, results[0].email, question_title, category, question_content, question_klay, trans_time];
                     var sql2 = "INSERT INTO question (question_num, email, question_title, category_num, question_content, klay, time) VALUES (?, ?, ?, ?, ?, ?, ?)";
                     db.klaytndb.query(sql2, params2, function (err, result, fields) {
                         if (err) {
-            console.log(err);
-            return callback(false);
-        } // 질문 등록 성공
+                            console.log(err);
+                            return callback(false);
+                        } // 질문 등록 성공
                         else {
                             //db.klaytndb.end();
                             console.log("db_insert_question1_success!");
-                            return callback(result);
+                            return callback(true);
                         }
                     });
                 }
@@ -679,17 +690,17 @@ db.insert_question2 = function (session_id, transaction, callback) {
             var params2 = [result[0].email];
             db.klaytndb.query(sql2, params2, function (err, results, fields) {
                 if (err) {
-            console.log(err);
-            return callback(false);
-        }
+                    console.log(err);
+                    return callback(false);
+                }
                 else {
                     var params3 = [transaction, results[0].wallet_address];
                     var sql3 = "INSERT INTO transaction (transaction, results[0].wallet_address) VALUES (?, ?)";
                     db.klaytndb.query(sql3, params3, function (err, result, fields) {
                         if (err) {
-            console.log(err);
-            return callback(false);
-        }
+                            console.log(err);
+                            return callback(false);
+                        }
                         else {
                             //db.klaytndb.end();
                             console.log("db_insert_question2_success!");
@@ -717,9 +728,9 @@ db.show_question = function (question_num, callback) {
                 var params2 = [question_num];
                 db.klaytndb.query(sql2, params2, function (err, result, fields) {
                     if (err) {
-            console.log(err);
-            return callback(false);
-        }
+                        console.log(err);
+                        return callback(false);
+                    }
                     else {
                         result[0].is_selected = "false"; // 답변이 없으니 채택 여부 false
                         //db.klaytndb.end();
@@ -733,9 +744,9 @@ db.show_question = function (question_num, callback) {
                 var params3 = [question_num];
                 db.klaytndb.query(sql3, params3, function (err, result, fields) {
                     if (err) {
-            console.log(err);
-            return callback(false);
-        }
+                        console.log(err);
+                        return callback(false);
+                    }
                     else {
                         console.log("db_show_question_success!");
                         //db.klaytndb.end();
@@ -747,8 +758,32 @@ db.show_question = function (question_num, callback) {
     });
 };
 
+
+db.questionList = function (questionState, cur_time, callback) { // 게시판 분류
+    var sql = "SELECT question.question_num, question.question_title, question.email, category.category, question.klay, question.time FROM question INNER JOIN category ON question.category_num = category.category_num AND question.q_selected = ?";
+    var params = [questionState];
+    db.klaytndb.query(sql, params, function (err, result, fields) {
+        if (err) {
+            console.log(err);
+            return callback(false);
+        }
+        else {
+            console.log("db_question_list_success!");
+            return callback(result); // 분류된 게시판에 대해 질문 번호, 질문 제목, 질문자 이메일, 카테고리, klay, 질문 시간 반환
+        }
+    });
+};
+
 db.questionListDefault = function (cur_time, callback) { // 디폴트, 지금은 채택 여부 없고, 만약 채택 여부도 반환하려면 질문 번호를 다 받아야함
     //db.klaytndb.connect();
+    var sql = "UPDATE question SET q_selected = 1 WHERE ? - time >= '0000-00-07 00:00:00'";
+    var params = [cur_time];
+    db.klaytndb.query(sql, params, function (err, result, fields) {
+        if (err) {
+            console.log(err);
+            return callback(false); // 질문 상태 변화
+        }
+    });
     var sql1 = "SELECT question.question_num, question.question_title, question.email, category.category, question.klay, question.time FROM question INNER JOIN category ON question.category_num = category.category_num";
     db.klaytndb.query(sql1, function (err, result, fields) {
         if (err) {
@@ -758,7 +793,7 @@ db.questionListDefault = function (cur_time, callback) { // 디폴트, 지금은
         else {
             //db.klaytndb.end();
             console.log("db_question_list_success!");
-            return callback(result); // 질문 번호, 질문 제목, 질문자 이메일, 카테고리, klay, 질문 시간 반환
+            return callback(result); // 모든 질문에 대해 질문 번호, 질문 제목, 질문자 이메일, 카테고리, klay, 질문 시간 반환
         }
     });
 };
@@ -829,66 +864,6 @@ db.questionListKlay = function (callback) { // klay순
     });
 };
 
-db.questionListState = function (cur_time, sort_num, callback) { // 게시판 분류
-    // 1.답변 진행중(q_selected = false, cur_time - question.time < 7days), 2. Like 진행중(q_selected = false, cur_time - question.time > 7days)
-    // 3. 답변 채택 완료(q_selected = true)
-    //db.klaytndb.connect();
-    if (sort_num == 3) {
-        var sql2 = "SELECT question.question_num, question.email, question.question_title, category.category, question.question_content, question.klay, question.time FROM question INNER JOIN category ON question.q_selected = true AND question.category_num = category.category_num";
-        db.klaytndb.query(sql2, function (err, result, fields) {
-            if (err) {
-                console.log(err);
-                return callback(false);
-            }
-            else {
-                console.log("db_question_list_success!");
-                return callback(result);
-            }
-        });
-    }
-    else {
-        var sql2 = "SELECT question_num, time FROM question WHERE q_selected = false";
-        db.klaytndb.query(sql2, function (err, result, fields) {
-            if (err) {
-                console.log(err);
-                return callback(false);
-            }
-            else {
-                if (cur_time - result[0].time < '168:00:00') { // 답변 진행중
-                    var sql3 = "SELECT question.question_num, question.email, question.question_title, category.category, question.question_content, question.klay, question.time FROM question INNER JOIN category ON question.q_selected = false AND question.category_num = category.category_num AND ? - ? < '168:00:00'";
-                    var params3 = [cur_time, result[0].time];
-                    db.klaytndb.query(sql3, params3, function (err, result, fields) {
-                        if (err) {
-                            console.log(err);
-                            return callback(false);
-                        }
-                        else {
-                            console.log("db_show_question_success!");
-                            //db.klaytndb.end();
-                            return callback(result); // 질문 번호, 질문자 이메일, 질문 제목, 카테고리, 질문 내용, klay, 질문 시간 반환
-                        }
-                    });
-                }
-                else { // Like 진행중
-                    var sql3 = "SELECT question.question_num, question.email, question.question_title, category.category, question.question_content, question.klay, question.time FROM question INNER JOIN category ON question.q_selected = false AND question.category_num = category.category_num AND ? - ? > '168:00:00'";
-                    var params3 = [cur_time, result[0].time];
-                    db.klaytndb.query(sql3, params3, function (err, result, fields) {
-                        if (err) {
-                            console.log(err);
-                            return callback(false);
-                        }
-                        else {
-                            console.log("db_show_question_success!");
-                            //db.klaytndb.end();
-                            return callback(result); // 질문 번호, 질문자 이메일, 질문 제목, 카테고리, 질문 내용, klay, 질문 시간 반환
-                        }
-                    });
-                }
-            }
-        });
-    }
-};
-
 db.insertAnswer = function (session_id, answer_content, question_num, callback) {
     //db.klaytndb.connect();
     var sql = "SELECT count(*) as total FROM answer";
@@ -903,17 +878,17 @@ db.insertAnswer = function (session_id, answer_content, question_num, callback) 
             var params2 = [session_id];
             db.klaytndb.query(sql2, params2, function (err, results, fields) {
                 if (err) {
-            console.log(err);
-            return callback(false);
-        }
+                    console.log(err);
+                    return callback(false);
+                }
                 else {
                     var sql3 = "INSERT INTO answer (answer_num, email, answer_content, question_num) VALUES (?, ?, ?, ?)";
                     var params3 = [result[0].total, results[0].email, answer_content, question_num];
                     db.klaytndb.query(sql3, params3, function (err, result, fields) {
                         if (err) {
-            console.log(err);
-            return callback(false);
-        } // 답변 등록 성공
+                            console.log(err);
+                            return callback(false);
+                        } // 답변 등록 성공
                         else {
                             //db.klaytndb.end();
                             console.log("db_insert_answer_success!");
@@ -955,10 +930,10 @@ db.insertLike = function (session_id, question_num, answer_num, callback) {
 
 db.selectAnswerOne = function (question_num, answer_num, callback) {
     //db.klaytndb.connect();
-    var sql4 = "UPDATE question SET q_selected = true WHERE question_num = ?";
+    var sql4 = "UPDATE question SET q_selected = 2 WHERE question_num = ?";
     var params4 = [question_num];
     db.klaytndb.query(sql, params, function (err, result, fields) {
-        if (err){
+        if (err) {
             console.log(err);
             return callback(false);
         }
@@ -983,9 +958,9 @@ db.selectAnswerOne = function (question_num, answer_num, callback) {
             var params3 = [result[0].email];
             db.klaytndb.query(sql3, params3, function (err, result, fields) {
                 if (err) {
-            console.log(err);
-            return callback(false);
-        }
+                    console.log(err);
+                    return callback(false);
+                }
                 else {
                     console.log("db_select_answer_success!");
                     //db.klaytndb.end();
@@ -998,19 +973,19 @@ db.selectAnswerOne = function (question_num, answer_num, callback) {
 
 db.selectAnswerTwo = function (wallet_address, transaction, callback) {
     //db.klaytndb.connect();
-                    var params = [transaction, wallet_address];
-                    var sql = "INSERT INTO transaction (transaction, wallet_address) VALUES (?, ?)";
-                    db.klaytndb.query(sql, params, function (err, result, fields) {
-                        if (err) {
+    var params = [transaction, wallet_address];
+    var sql = "INSERT INTO transaction (transaction, wallet_address) VALUES (?, ?)";
+    db.klaytndb.query(sql, params, function (err, result, fields) {
+        if (err) {
             console.log(err);
             return callback(false);
         }
-                        else {
-                            //db.klaytndb.end();
-                            console.log("db_insert_question2_success!");
-                            return callbakc(true); // transaction, wallet_address 저장
-                        }
-                    });
+        else {
+            //db.klaytndb.end();
+            console.log("db_insert_question2_success!");
+            return callbakc(true); // transaction, wallet_address 저장
+        }
+    });
 };
 
 module.exports = db;
