@@ -852,21 +852,265 @@ db.show_question = function (question_num, callback) {
     });
 };
 
-/*
-db.questionList = function (questionState, cur_time, callback) { // 게시판 분류
-    var sql = "SELECT question.question_num, question.question_title, question.email, category.category, question.klay, question.time FROM question INNER JOIN category ON question.category_num = category.category_num AND question.q_selected = ?";
-    var params = [questionState];
-    db.klaytndb.query(sql, params, function (err, result, fields) {
-        if (err) {
-            console.log(err);
-            return callback(false);
+db.questionList = function (question_state, sort_num, keyword, category, callback) {
+    sort_num = typeof sort_num !== 'undefined' ? sort_num : 0; // 0 -> 오래된 순, 1 -> 최신순, 2 -> klay순
+    keyword = typeof keyword !== 'undefined' ? keyword : '%';
+    category = typeof category !== 'undefined' ? category : 0; // 0-> 전체, 1~13 -> 카테고리
+    question_state = typeof question_state !== 'undefined' ? question_state : 0; // 0 -> 답변 진행중, 1 -> Like 진행중, 2 -> 채택 완료
+
+    if (category != 0) { // 카테고리 별
+        if (question_state == 0) { // 답변 진행중
+            if (sort_num == 0) { // 오래된 순
+                var sql = "SELECT question.question_num, question.question_title, question.email, category.category, question.klay, question.time FROM question INNER JOIN category ON question.category_num = category.category_num AND question.q_selected = ? AND question.question_content = ? AND question.category_num = ?";
+                var params = [question_state, keyword, category];
+                db.klaytndb.query(sql, params, function (err, result, fields) {
+                    if (err) {
+                        console.log(err);
+                        return callback(false);
+                    }
+                    else {
+                        return callback(result); // 답변 진행중 게시판에 대해 질문 번호, 질문 제목, 질문자 이메일, 카테고리, klay, 질문 시간 오래된 순 반환
+                    }
+                });
+            }
+            else if (sort_num == 1) { // 최신순
+                var sql = "SELECT question.question_num, question.question_title, question.email, category.category, question.klay, question.time FROM question INNER JOIN category ON question.category_num = category.category_num AND question.q_selected = ? AND question.question_content = ? AND question.category_num = ? ORDER BY question.time DESC";
+                var params = [question_state, keyword, category];
+                db.klaytndb.query(sql, params, function (err, result, fields) {
+                    if (err) {
+                        console.log(err);
+                        return callback(false);
+                    }
+                    else {
+                        return callback(result); // 답변 진행중 게시판에 대해 질문 번호, 질문 제목, 질문자 이메일, 카테고리, klay, 질문 시간 최신순 반환
+                    }
+                });
+            }
+            else { // klay 순
+                var sql = "SELECT question.question_num, question.question_title, question.email, category.category, question.klay, question.time FROM question INNER JOIN category ON question.category_num = category.category_num AND question.q_selected = ? AND question.question_content = ? AND question.category_num = ? ORDER BY question.klay DESC";
+                var params = [question_state, keyword, category];
+                db.klaytndb.query(sql, params, function (err, result, fields) {
+                    if (err) {
+                        console.log(err);
+                        return callback(false);
+                    }
+                    else {
+                        return callback(result); // 답변 진행중 게시판에 대해 질문 번호, 질문 제목, 질문자 이메일, 카테고리, klay, 질문 시간 klay 순 반환
+                    }
+                });
+            }
         }
-        else{
-            return callback(result); // 분류된 게시판에 대해 질문 번호, 질문 제목, 질문자 이메일, 카테고리, klay, 질문 시간 반환
+        else if (question_state == 1) { // Like 진행중
+            if (sort_num == 0) { // 오래된 순
+                var sql = "SELECT question.question_num, question.question_title, question.email, category.category, question.klay, question.time FROM question INNER JOIN category ON question.category_num = category.category_num AND question.q_selected = ? AND question.question_content = ? AND question.category_num = ?";
+                var params = [question_state, keyword, category];
+                db.klaytndb.query(sql, params, function (err, result, fields) {
+                    if (err) {
+                        console.log(err);
+                        return callback(false);
+                    }
+                    else {
+                        return callback(result); // Like 진행중 게시판에 대해 질문 번호, 질문 제목, 질문자 이메일, 카테고리, klay, 질문 시간 오래된 순 반환
+                    }
+                });
+            }
+            else if (sort_num == 1) { // 최신순
+                var sql = "SELECT question.question_num, question.question_title, question.email, category.category, question.klay, question.time FROM question INNER JOIN category ON question.category_num = category.category_num AND question.q_selected = ? AND question.question_content = ? AND question.category_num = ? ORDER BY question.time DESC";
+                var params = [question_state, keyword, category];
+                db.klaytndb.query(sql, params, function (err, result, fields) {
+                    if (err) {
+                        console.log(err);
+                        return callback(false);
+                    }
+                    else {
+                        return callback(result); // Like 진행중 게시판에 대해 질문 번호, 질문 제목, 질문자 이메일, 카테고리, klay, 질문 시간 최신순 반환
+                    }
+                });
+            }
+            else { // klay 순
+                var sql = "SELECT question.question_num, question.question_title, question.email, category.category, question.klay, question.time FROM question INNER JOIN category ON question.category_num = category.category_num AND question.q_selected = ? AND question.question_content = ? AND question.category_num = ? ORDER BY question.klay DESC";
+                var params = [question_state, keyword, category];
+                db.klaytndb.query(sql, params, function (err, result, fields) {
+                    if (err) {
+                        console.log(err);
+                        return callback(false);
+                    }
+                    else {
+                        return callback(result); // Like 게시판에 대해 질문 번호, 질문 제목, 질문자 이메일, 카테고리, klay, 질문 시간 klay 순 반환
+                    }
+                });
+            }
         }
-    });
+        else { // 채택 완료
+            if (sort_num == 0) { // 오래된 순
+                var sql = "SELECT question.question_num, question.question_title, question.email, category.category, question.klay, question.time FROM question INNER JOIN category ON question.category_num = category.category_num AND question.q_selected = ? AND question.question_content = ? AND question.category_num = ?";
+                var params = [question_state, keyword, category];
+                db.klaytndb.query(sql, params, function (err, result, fields) {
+                    if (err) {
+                        console.log(err);
+                        return callback(false);
+                    }
+                    else {
+                        return callback(result); // 답변 채택 완료 게시판에 대해 질문 번호, 질문 제목, 질문자 이메일, 카테고리, klay, 질문 시간 오래된 순 반환
+                    }
+                });
+            }
+            else if (sort_num == 1) { // 최신순
+                var sql = "SELECT question.question_num, question.question_title, question.email, category.category, question.klay, question.time FROM question INNER JOIN category ON question.category_num = category.category_num AND question.q_selected = ? AND question.question_content = ? AND question.category_num = ? ORDER BY question.time DESC";
+                var params = [question_state, keyword, category];
+                db.klaytndb.query(sql, params, function (err, result, fields) {
+                    if (err) {
+                        console.log(err);
+                        return callback(false);
+                    }
+                    else {
+                        return callback(result); // 답변 채택 완료 게시판에 대해 질문 번호, 질문 제목, 질문자 이메일, 카테고리, klay, 질문 시간 최신순 반환
+                    }
+                });
+            }
+            else { // klay 순
+                var sql = "SELECT question.question_num, question.question_title, question.email, category.category, question.klay, question.time FROM question INNER JOIN category ON question.category_num = category.category_num AND question.q_selected = ? AND question.question_content = ? AND question.category_num = ? ORDER BY question.klay DESC";
+                var params = [question_state, keyword, category];
+                db.klaytndb.query(sql, params, function (err, result, fields) {
+                    if (err) {
+                        console.log(err);
+                        return callback(false);
+                    }
+                    else {
+                        return callback(result); // 답변 채택 완료 게시판에 대해 질문 번호, 질문 제목, 질문자 이메일, 카테고리, klay, 질문 시간 klay 순 반환
+                    }
+                });
+            }
+        }
+    }
+    else { // 카테고리 전체
+        if (question_state == 0) { // 답변 진행중
+            if (sort_num == 0) { // 오래된 순
+                var sql = "SELECT question.question_num, question.question_title, question.email, category.category, question.klay, question.time FROM question INNER JOIN category ON question.category_num = category.category_num AND question.q_selected = ? AND question.question_content = ?";
+                var params = [question_state, keyword];
+                db.klaytndb.query(sql, params, function (err, result, fields) {
+                    if (err) {
+                        console.log(err);
+                        return callback(false);
+                    }
+                    else {
+                        return callback(result); // 답변 진행중 게시판에 대해 질문 번호, 질문 제목, 질문자 이메일, 카테고리, klay, 질문 시간 오래된 순 반환
+                    }
+                });
+            }
+            else if (sort_num == 1) { // 최신순
+                var sql = "SELECT question.question_num, question.question_title, question.email, category.category, question.klay, question.time FROM question INNER JOIN category ON question.category_num = category.category_num AND question.q_selected = ? AND question.question_content = ? ORDER BY question.time DESC";
+                var params = [question_state, keyword];
+                db.klaytndb.query(sql, params, function (err, result, fields) {
+                    if (err) {
+                        console.log(err);
+                        return callback(false);
+                    }
+                    else {
+                        return callback(result); // 답변 진행중 게시판에 대해 질문 번호, 질문 제목, 질문자 이메일, 카테고리, klay, 질문 시간 최신순 반환
+                    }
+                });
+            }
+            else { // klay 순
+                var sql = "SELECT question.question_num, question.question_title, question.email, category.category, question.klay, question.time FROM question INNER JOIN category ON question.category_num = category.category_num AND question.q_selected = ? AND question.question_content = ? ORDER BY question.klay DESC";
+                var params = [question_state, keyword];
+                db.klaytndb.query(sql, params, function (err, result, fields) {
+                    if (err) {
+                        console.log(err);
+                        return callback(false);
+                    }
+                    else {
+                        return callback(result); // 답변 진행중 게시판에 대해 질문 번호, 질문 제목, 질문자 이메일, 카테고리, klay, 질문 시간 klay 순 반환
+                    }
+                });
+            }
+        }
+        else if (question_state == 1) { // Like 진행중
+            if (sort_num == 0) { // 오래된 순
+                var sql = "SELECT question.question_num, question.question_title, question.email, category.category, question.klay, question.time FROM question INNER JOIN category ON question.category_num = category.category_num AND question.q_selected = ? AND question.question_content = ?";
+                var params = [question_state, keyword];
+                db.klaytndb.query(sql, params, function (err, result, fields) {
+                    if (err) {
+                        console.log(err);
+                        return callback(false);
+                    }
+                    else {
+                        return callback(result); // Like 진행중 게시판에 대해 질문 번호, 질문 제목, 질문자 이메일, 카테고리, klay, 질문 시간 오래된 순 반환
+                    }
+                });
+            }
+            else if (sort_num == 1) { // 최신순
+                var sql = "SELECT question.question_num, question.question_title, question.email, category.category, question.klay, question.time FROM question INNER JOIN category ON question.category_num = category.category_num AND question.q_selected = ? AND question.question_content = ? ORDER BY question.time DESC";
+                var params = [question_state, keyword];
+                db.klaytndb.query(sql, params, function (err, result, fields) {
+                    if (err) {
+                        console.log(err);
+                        return callback(false);
+                    }
+                    else {
+                        return callback(result); // Like 진행중 게시판에 대해 질문 번호, 질문 제목, 질문자 이메일, 카테고리, klay, 질문 시간 최신순 반환
+                    }
+                });
+            }
+            else { // klay 순
+                var sql = "SELECT question.question_num, question.question_title, question.email, category.category, question.klay, question.time FROM question INNER JOIN category ON question.category_num = category.category_num AND question.q_selected = ? AND question.question_content = ? ORDER BY question.klay DESC";
+                var params = [question_state, keyword];
+                db.klaytndb.query(sql, params, function (err, result, fields) {
+                    if (err) {
+                        console.log(err);
+                        return callback(false);
+                    }
+                    else {
+                        return callback(result); // Like 진행중 게시판에 대해 질문 번호, 질문 제목, 질문자 이메일, 카테고리, klay, 질문 시간 klay 순 반환
+                    }
+                });
+            }
+        }
+        else { // 채택 완료
+            if (sort_num == 0) { // 오래된 순
+                var sql = "SELECT question.question_num, question.question_title, question.email, category.category, question.klay, question.time FROM question INNER JOIN category ON question.category_num = category.category_num AND question.q_selected = ? AND question.question_content = ?";
+                var params = [question_state, keyword];
+                db.klaytndb.query(sql, params, function (err, result, fields) {
+                    if (err) {
+                        console.log(err);
+                        return callback(false);
+                    }
+                    else {
+                        return callback(result); // 답변 채택 완료 게시판에 대해 질문 번호, 질문 제목, 질문자 이메일, 카테고리, klay, 질문 시간 오래된 순 반환
+                    }
+                });
+            }
+            else if (sort_num == 1) { // 최신순
+                var sql = "SELECT question.question_num, question.question_title, question.email, category.category, question.klay, question.time FROM question INNER JOIN category ON question.category_num = category.category_num AND question.q_selected = ? AND question.question_content = ? ORDER BY question.time DESC";
+                var params = [question_state, keyword];
+                db.klaytndb.query(sql, params, function (err, result, fields) {
+                    if (err) {
+                        console.log(err);
+                        return callback(false);
+                    }
+                    else {
+                        return callback(result); // 답변 채택 완료 게시판에 대해 질문 번호, 질문 제목, 질문자 이메일, 카테고리, klay, 질문 시간 최신순 반환
+                    }
+                });
+            }
+            else { // klay 순
+                var sql = "SELECT question.question_num, question.question_title, question.email, category.category, question.klay, question.time FROM question INNER JOIN category ON question.category_num = category.category_num AND question.q_selected = ? AND question.question_content = ? ORDER BY question.klay DESC";
+                var params = [question_state, keyword];
+                db.klaytndb.query(sql, params, function (err, result, fields) {
+                    if (err) {
+                        console.log(err);
+                        return callback(false);
+                    }
+                    else {
+                        return callback(result); // 답변 채택 완료 게시판에 대해 질문 번호, 질문 제목, 질문자 이메일, 카테고리, klay, 질문 시간 klay 순 반환
+                    }
+                });
+            }
+        }
+    }
 };
-db.questionListDefault = function (cur_time, callback) { // 디폴트, 지금은 채택 여부 없고, 만약 채택 여부도 반환하려면 질문 번호를 다 받아야함
+
+db.questionListDefault = function (cur_time, callback) { // 모든 게시판 누를 때마다 호출, 모든 질문 불러오기, 7일 된 질문 분류하는 기능
     var sql = "UPDATE question SET q_selected = 1 WHERE ? - time >= '0000-00-07 00:00:00'";
     var params = [cur_time];
     db.klaytndb.query(sql, params, function (err, result, fields) {
@@ -886,57 +1130,6 @@ db.questionListDefault = function (cur_time, callback) { // 디폴트, 지금은
         }
     });
 };
-db.questionListCategory = function (category_num, callback) { // 카테고리별
-    var sql = "SELECT question.question_num, question.question_title, question.email, category.category, question.klay, question.time FROM question INNER JOIN category ON question.category_num = ? AND question.category_num = category.category_num";
-    var params = [category_num];
-    db.klaytndb.query(sql, params, function (err, result, fields) {
-        if (err) {
-            console.log(err);
-            return callback(false);
-        }
-        else {
-            return callback(result); // 질문 번호, 질문 제목, 질문자 이메일, 카테고리, klay, 질문 시간 반환
-        }
-    });
-};
-db.questionListKeyword = function (keyword, callback) { // 키워드 검색
-    var sql = "SELECT question.question_num, question.question_title, question.email, category.category, question.klay, question.time FROM question INNER JOIN category ON question.category_num = ? AND question.question_content like '%?%'";
-    var params = [keyword];
-    db.klaytndb.query(sql, params, function (err, result, fields) {
-        if (err) {
-            console.log(err);
-            return callback(false);
-        }
-        else {
-            return callback(result); // 질문 번호, 질문 제목, 질문자 이메일, 카테고리, klay, 질문 시간 반환
-        }
-    });
-};
-db.questionListTime = function (callback) { // 최신순
-    var sql = "SELECT question.question_num, question.question_title, question.email, category.category, question.klay, question.time FROM question INNER JOIN category ON question.category_num = category.category_num ORDER BY question.time DESC";
-    db.klaytndb.query(sql, function (err, result, fields) {
-        if (err) {
-            console.log(err);
-            return callback(false);
-        }
-        else {
-            return callback(result); // 질문 번호, 질문 제목, 질문자 이메일, 카테고리, klay, 질문 시간 반환
-        }
-    });
-};
-db.questionListKlay = function (callback) { // klay순
-    var sql = "SELECT question.question_num, question.question_title, question.email, category.category, question.klay, question.time FROM question INNER JOIN category ON question.category_num = category.category_num ORDER BY question.klay DESC";
-    db.klaytndb.query(sql, function (err, result, fields) {
-        if (err) {
-            console.log(err);
-            return callback(false);
-        }
-        else {
-            return callback(result); // 질문 번호, 질문 제목, 질문자 이메일, 카테고리, klay, 질문 시간 반환
-        }
-    });
-};
-*/
 
 db.insertAnswer = function (session_id, answer_content, question_num, callback) {
     var sql = "SELECT count(*) as total FROM answer";
