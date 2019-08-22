@@ -5,12 +5,15 @@ var questionCaver = {};
 
 questionCaver.putReward = async function(_address, _privateKey, _value){
 
+    var payerValue = Number(_value)*0.001;
+    var value = Number(_value)*0.999;
+    
     var { rawTransaction: senderFeeRawTransaction } = await cav.caver.klay.accounts.signTransaction({
         type: 'FEE_DELEGATED_VALUE_TRANSFER',
         from: _address,
         to: config.feePayerAddress,
         gas: '300000',
-        value: cav.caver.utils.toPeb(_value*0.001, 'KLAY'),
+        value: cav.caver.utils.toPeb(String(payerValue), 'KLAY'),
     }, _privateKey);
 
     var feeReceipt = await cav.caver.klay.sendTransaction({
@@ -30,7 +33,7 @@ questionCaver.putReward = async function(_address, _privateKey, _value){
         to:   config.contractAddress,
         data: funcData,
         gas:  '300000',
-        value: cav.caver.utils.toPeb(_value*0.999, 'KLAY'),
+        value: cav.caver.utils.toPeb(String(value), 'KLAY'),
     }, _privateKey)
 
     var receipt = await cav.caver.klay.sendTransaction({
