@@ -777,7 +777,7 @@ db.insert_question2 = function (session_id, transaction, callback) {
                                 }
                                 else {
                                     var params3 = [transaction, results[0].wallet_address];
-                                    var sql3 = "INSERT INTO transaction (transaction, results[0].wallet_address) VALUES (?, ?)";
+                                    var sql3 = "INSERT INTO transaction (transaction, wallet_address) VALUES (?, ?)";
                                     db.klaytndb.query(sql3, params3, function (err, result, fields) {
                                         if (err) {
                                             console.log(err);
