@@ -782,19 +782,20 @@ db.insert_question2 = function (session_id, transaction, callback) {
                     return callback(false);
                 }
                 else {
+                    var u_email = result[0].email;
                     var params = [result[0].email];
-                    var sql = "SELECT email, count(wallet_address) as totals FROM userInfo WHERE email = ?";
-                    db.klaytndb.query(sql, params, function (err, result, fields) {
-                        if (result[0].totals) {
+                    var sql = "SELECT count(wallet_address) as totals FROM userInfo WHERE email = ?";
+                    db.klaytndb.query(sql, params, function (err, results, fields) {
+                        if (results[0].totals) {
                             var sql2 = "SELECT wallet_address FROM userInfo WHERE email = ?";
-                            var params2 = [result[0].email];
-                            db.klaytndb.query(sql2, params2, function (err, results, fields) {
+                            var params2 = [u_email];
+                            db.klaytndb.query(sql2, params2, function (err, resultss, fields) {
                                 if (err) {
                                     console.log(err);
                                     return callback(false);
                                 }
                                 else {
-                                    var params3 = [transaction, results[0].wallet_address];
+                                    var params3 = [transaction, resultss[0].wallet_address];
                                     var sql3 = "INSERT INTO transaction (transaction, wallet_address) VALUES (?, ?)";
                                     db.klaytndb.query(sql3, params3, function (err, result, fields) {
                                         if (err) {
@@ -802,7 +803,7 @@ db.insert_question2 = function (session_id, transaction, callback) {
                                             return callback(false);
                                         }
                                         else {
-                                            return callbakc(result); // transaction, wallet_address 저장
+                                            return callbakc(true); // transaction, wallet_address 저장
                                         }
                                     });
                                 }
