@@ -232,6 +232,20 @@ db.signup2 = function (u_email, u_pw, u_nick, _address, _privateK, callback) {
     });
 };
 
+db.authIdentityCodeDelete = function (userEmail, callback) {
+    var sql1 = "DELETE FROM userAuth WHERE email = ?";
+    var params1 = [userEmail];
+    db.klaytndb.query(sql1, params1, function (err, result, fields) {
+        if (err) {
+            console.log(err);
+            return callback(false);
+        } // 인증 코드 삭제
+        else{
+            return callback(true);
+        }
+    });
+};
+
 db.find_pw_auth_identity1 = function (u_email, callback) {
     var params = [u_email];
     var sql = "SELECT count(email) as total FROM userInfo WHERE email = ?";
