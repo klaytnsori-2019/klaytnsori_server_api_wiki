@@ -9,20 +9,35 @@ db.klaytndb = mysql.createConnection({
 });
 
 db.login1 = function (u_email, u_pw, callback) {
-    var sql = "SELECT email FROM userInfo WHERE email = ? AND password = ?";
-    var params = [u_email, u_pw];
-    db.klaytndb.query(sql, params, function (err, result, fields) {
-        if (err) {
-            console.log(err);
-            return callback(false);
-        }
-        else {
-            var params4 = [u_email];
-            var sql4 = "DELETE FROM userSession WHERE email = ?";
-            db.klaytndb.query(sql4, params4, function (err, result, fields) {
-                if (err) {
-                    console.log(err);
-                    return callback(false);
+    var params3 = [u_email, u_pw];
+    var sql3 = "SELECT count(email) as total FROM userInfo WHERE email = ? AND password = ?";
+    db.klaytndb.query(sql3, params3, function (err, result, fields) {
+        if (result[0].total) {
+            var params3 = [u_email];
+            var sql3 = "SELECT count(session_id) as totals FROM userSession WHERE email = ?";
+            db.klaytndb.query(sql3, params3, function (err, result, fields) {
+                if (result[0].totals) {
+                    var params4 = [u_email];
+                    var sql4 = "DELETE FROM userSession WHERE email = ?";
+                    db.klaytndb.query(sql4, params4, function (err, result, fields) {
+                        if (err) {
+                            console.log(err);
+                            return callback(false);
+                        }
+                        else {
+                            var params2 = [u_email];
+                            var sql2 = "SELECT private_key FROM userInfo WHERE email = ?";
+                            db.klaytndb.query(sql2, params2, function (err, result, fields) {
+                                if (err) {
+                                    console.log(err);
+                                    return callback(false);
+                                }
+                                else {
+                                    return callback(result); // private_key 반환
+                                }
+                            });
+                        }
+                    });
                 }
                 else {
                     var params2 = [u_email];
@@ -38,6 +53,9 @@ db.login1 = function (u_email, u_pw, callback) {
                     });
                 }
             });
+        }
+        else {
+            return callback(false);
         }
     });
 };
