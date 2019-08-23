@@ -227,21 +227,17 @@ db.signup2 = function (u_email, u_pw, u_nick, _address, _privateK, callback) {
             return callback(false);
         } // 회원가입 성공
         else {
-            return callback(true);
-        }
-    });
-};
-
-db.authIdentityCodeDelete = function (userEmail, callback) {
-    var sql1 = "DELETE FROM userAuth WHERE email = ?";
-    var params1 = [userEmail];
-    db.klaytndb.query(sql1, params1, function (err, result, fields) {
-        if (err) {
-            console.log(err);
-            return callback(false);
-        } // 인증 코드 삭제
-        else{
-            return callback(true);
+            var sql1 = "DELETE FROM userAuth WHERE email = ?";
+            var params1 = [u_email];
+            db.klaytndb.query(sql1, params1, function (err, result, fields) {
+                if (err) {
+                    console.log(err);
+                    return callback(false);
+                } // 인증 코드 삭제
+                else {
+                    return callback(true);
+                }
+            });
         }
     });
 };
@@ -358,35 +354,6 @@ db.modify_pw = function (_session, m_pw, callback) {
         }
     });
 };
-
-/*
-db.authorize_identity = function (u_email, string1) {
-    db.klaytndb.connect();
-    var params = [u_email];
-    var sql = "SELECT code FROM userAuth WHERE email = ?";
-    db.klaytndb.query(sql, params, function (err, result, fields) {
-        if (err) console.log(err); 
-        else {
-            //var string1 = req.body.authorize_text; 위에서 선언해줘야함
-            var string2 = result[0].code;
-            if (string1 == string2) { // 인증 성공
-                //caver.klay.accounts.wallet.add('u_account_address');
-                db.klaytndb.end();
-                return result; 
-            }
-            else {
-                var codeError = {
-                    "name": 'Authorize code Error',
-                    "errors": {}
-                };
-                codeError.errors = { message: 'Diffrent authorize text' };
-                db.klaytndb.end();
-                return codeError;
-            }
-        }
-    });
-};
-*/
 
 db.noname = function (session_id, callback) {
     var sql = "SELECT count(email) as total FROM userSession WHERE session_id = ?";
