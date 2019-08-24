@@ -736,7 +736,7 @@ db.insert_question1 = function (session_id, question_title, question_klay, quest
                                     return callback(false);
                                 } // 질문 등록 성공
                                 else {
-                                    return callback(true);
+                                    return callback(question_num);
                                 }
                             });
                         }
