@@ -706,6 +706,7 @@ db.category = function (callback) {
     });
 };
 
+
 db.insert_question1 = function (session_id, question_title, question_klay, question_content, category, trans_time, callback) {
     var params = [session_id];
     var sql = "SELECT count(email) as totals FROM userSession WHERE session_id = ?";
@@ -793,7 +794,7 @@ db.insert_question2 = function (session_id, transaction, callback) {
                                             return callback(false);
                                         }
                                         else {
-                                            return callback(true); // transaction, wallet_address 저장
+                                            return callbakc(true); // transaction, wallet_address 저장
                                         }
                                     });
                                 }
@@ -861,16 +862,16 @@ db.show_question = function (question_num, callback) {
     });
 };
 
-db.questionList = function (question_state, sort_num, keyword, category, callback) {
+db.questionList = function (question_state, sort_num, keyword, category, callback) { 
     sort_num = typeof sort_num !== 'undefined' ? sort_num : 0; // 0 -> 오래된 순, 1 -> 최신순, 2 -> klay순
-    keyword = typeof keyword !== 'undefined' ? keyword : '%';
+    keyword = typeof keyword !== 'undefined' ? keyword : '%%';
     category = typeof category !== 'undefined' ? category : 0; // 0-> 전체, 1~13 -> 카테고리
     question_state = typeof question_state !== 'undefined' ? question_state : 0; // 0 -> 답변 진행중, 1 -> Like 진행중, 2 -> 채택 완료
 
     if (category != 0) { // 카테고리 별
         if (question_state == 0) { // 답변 진행중
             if (sort_num == 0) { // 오래된 순
-                var sql = "SELECT question.question_num, question.question_title, question.email, category.category, question.klay, question.time FROM question INNER JOIN category ON question.category_num = category.category_num AND question.q_selected = ? AND question.question_content = ? AND question.category_num = ?";
+                var sql = "SELECT question.question_num, question.question_title, question.email, category.category, question.klay, question.time FROM question INNER JOIN category ON question.category_num = category.category_num AND question.q_selected = ?  AND question.question_content LIKE ? AND question.category_num = ?";
                 var params = [question_state, keyword, category];
                 db.klaytndb.query(sql, params, function (err, result, fields) {
                     if (err) {
@@ -883,7 +884,7 @@ db.questionList = function (question_state, sort_num, keyword, category, callbac
                 });
             }
             else if (sort_num == 1) { // 최신순
-                var sql = "SELECT question.question_num, question.question_title, question.email, category.category, question.klay, question.time FROM question INNER JOIN category ON question.category_num = category.category_num AND question.q_selected = ? AND question.question_content = ? AND question.category_num = ? ORDER BY question.time DESC";
+                var sql = "SELECT question.question_num, question.question_title, question.email, category.category, question.klay, question.time FROM question INNER JOIN category ON question.category_num = category.category_num AND question.q_selected = ? AND question.question_content LIKE '%?%' AND question.category_num = ? ORDER BY question.time DESC";
                 var params = [question_state, keyword, category];
                 db.klaytndb.query(sql, params, function (err, result, fields) {
                     if (err) {
@@ -896,7 +897,7 @@ db.questionList = function (question_state, sort_num, keyword, category, callbac
                 });
             }
             else { // klay 순
-                var sql = "SELECT question.question_num, question.question_title, question.email, category.category, question.klay, question.time FROM question INNER JOIN category ON question.category_num = category.category_num AND question.q_selected = ? AND question.question_content = ? AND question.category_num = ? ORDER BY question.klay DESC";
+                var sql = "SELECT question.question_num, question.question_title, question.email, category.category, question.klay, question.time FROM question INNER JOIN category ON question.category_num = category.category_num AND question.q_selected = ? AND question.question_content LIKE '%?%' AND question.category_num = ? ORDER BY question.klay DESC";
                 var params = [question_state, keyword, category];
                 db.klaytndb.query(sql, params, function (err, result, fields) {
                     if (err) {
@@ -911,7 +912,7 @@ db.questionList = function (question_state, sort_num, keyword, category, callbac
         }
         else if (question_state == 1) { // Like 진행중
             if (sort_num == 0) { // 오래된 순
-                var sql = "SELECT question.question_num, question.question_title, question.email, category.category, question.klay, question.time FROM question INNER JOIN category ON question.category_num = category.category_num AND question.q_selected = ? AND question.question_content = ? AND question.category_num = ?";
+                var sql = "SELECT question.question_num, question.question_title, question.email, category.category, question.klay, question.time FROM question INNER JOIN category ON question.category_num = category.category_num AND question.q_selected = ? AND question.question_content LIKE '%?%' AND question.category_num = ?";
                 var params = [question_state, keyword, category];
                 db.klaytndb.query(sql, params, function (err, result, fields) {
                     if (err) {
@@ -924,7 +925,7 @@ db.questionList = function (question_state, sort_num, keyword, category, callbac
                 });
             }
             else if (sort_num == 1) { // 최신순
-                var sql = "SELECT question.question_num, question.question_title, question.email, category.category, question.klay, question.time FROM question INNER JOIN category ON question.category_num = category.category_num AND question.q_selected = ? AND question.question_content = ? AND question.category_num = ? ORDER BY question.time DESC";
+                var sql = "SELECT question.question_num, question.question_title, question.email, category.category, question.klay, question.time FROM question INNER JOIN category ON question.category_num = category.category_num AND question.q_selected = ? AND question.question_content LIKE '%?%' AND question.category_num = ? ORDER BY question.time DESC";
                 var params = [question_state, keyword, category];
                 db.klaytndb.query(sql, params, function (err, result, fields) {
                     if (err) {
@@ -937,7 +938,7 @@ db.questionList = function (question_state, sort_num, keyword, category, callbac
                 });
             }
             else { // klay 순
-                var sql = "SELECT question.question_num, question.question_title, question.email, category.category, question.klay, question.time FROM question INNER JOIN category ON question.category_num = category.category_num AND question.q_selected = ? AND question.question_content = ? AND question.category_num = ? ORDER BY question.klay DESC";
+                var sql = "SELECT question.question_num, question.question_title, question.email, category.category, question.klay, question.time FROM question INNER JOIN category ON question.category_num = category.category_num AND question.q_selected = ? AND question.question_content LIKE '%?%' AND question.category_num = ? ORDER BY question.klay DESC";
                 var params = [question_state, keyword, category];
                 db.klaytndb.query(sql, params, function (err, result, fields) {
                     if (err) {
@@ -952,7 +953,7 @@ db.questionList = function (question_state, sort_num, keyword, category, callbac
         }
         else { // 채택 완료
             if (sort_num == 0) { // 오래된 순
-                var sql = "SELECT question.question_num, question.question_title, question.email, category.category, question.klay, question.time FROM question INNER JOIN category ON question.category_num = category.category_num AND question.q_selected = ? AND question.question_content = ? AND question.category_num = ?";
+                var sql = "SELECT question.question_num, question.question_title, question.email, category.category, question.klay, question.time FROM question INNER JOIN category ON question.category_num = category.category_num AND question.q_selected = ? AND question.question_content LIKE '%?%' AND question.category_num = ?";
                 var params = [question_state, keyword, category];
                 db.klaytndb.query(sql, params, function (err, result, fields) {
                     if (err) {
@@ -965,7 +966,7 @@ db.questionList = function (question_state, sort_num, keyword, category, callbac
                 });
             }
             else if (sort_num == 1) { // 최신순
-                var sql = "SELECT question.question_num, question.question_title, question.email, category.category, question.klay, question.time FROM question INNER JOIN category ON question.category_num = category.category_num AND question.q_selected = ? AND question.question_content = ? AND question.category_num = ? ORDER BY question.time DESC";
+                var sql = "SELECT question.question_num, question.question_title, question.email, category.category, question.klay, question.time FROM question INNER JOIN category ON question.category_num = category.category_num AND question.q_selected = ? AND question.question_content LIKE '%?%' AND question.category_num = ? ORDER BY question.time DESC";
                 var params = [question_state, keyword, category];
                 db.klaytndb.query(sql, params, function (err, result, fields) {
                     if (err) {
@@ -978,7 +979,7 @@ db.questionList = function (question_state, sort_num, keyword, category, callbac
                 });
             }
             else { // klay 순
-                var sql = "SELECT question.question_num, question.question_title, question.email, category.category, question.klay, question.time FROM question INNER JOIN category ON question.category_num = category.category_num AND question.q_selected = ? AND question.question_content = ? AND question.category_num = ? ORDER BY question.klay DESC";
+                var sql = "SELECT question.question_num, question.question_title, question.email, category.category, question.klay, question.time FROM question INNER JOIN category ON question.category_num = category.category_num AND question.q_selected = ? AND question.question_content LIKE '%?%' AND question.category_num = ? ORDER BY question.klay DESC";
                 var params = [question_state, keyword, category];
                 db.klaytndb.query(sql, params, function (err, result, fields) {
                     if (err) {
@@ -995,7 +996,7 @@ db.questionList = function (question_state, sort_num, keyword, category, callbac
     else { // 카테고리 전체
         if (question_state == 0) { // 답변 진행중
             if (sort_num == 0) { // 오래된 순
-                var sql = "SELECT question.question_num, question.question_title, question.email, category.category, question.klay, question.time FROM question INNER JOIN category ON question.category_num = category.category_num AND question.q_selected = ? AND question.question_content = ?";
+                var sql = "SELECT question.question_num, question.question_title, question.email, category.category, question.klay, question.time FROM question INNER JOIN category ON question.category_num = category.category_num AND question.q_selected = ? AND question.question_content LIKE '%?%'";
                 var params = [question_state, keyword];
                 db.klaytndb.query(sql, params, function (err, result, fields) {
                     if (err) {
@@ -1008,7 +1009,7 @@ db.questionList = function (question_state, sort_num, keyword, category, callbac
                 });
             }
             else if (sort_num == 1) { // 최신순
-                var sql = "SELECT question.question_num, question.question_title, question.email, category.category, question.klay, question.time FROM question INNER JOIN category ON question.category_num = category.category_num AND question.q_selected = ? AND question.question_content = ? ORDER BY question.time DESC";
+                var sql = "SELECT question.question_num, question.question_title, question.email, category.category, question.klay, question.time FROM question INNER JOIN category ON question.category_num = category.category_num AND question.q_selected = ? AND question.question_content LIKE '%?%' ORDER BY question.time DESC";
                 var params = [question_state, keyword];
                 db.klaytndb.query(sql, params, function (err, result, fields) {
                     if (err) {
@@ -1021,7 +1022,7 @@ db.questionList = function (question_state, sort_num, keyword, category, callbac
                 });
             }
             else { // klay 순
-                var sql = "SELECT question.question_num, question.question_title, question.email, category.category, question.klay, question.time FROM question INNER JOIN category ON question.category_num = category.category_num AND question.q_selected = ? AND question.question_content = ? ORDER BY question.klay DESC";
+                var sql = "SELECT question.question_num, question.question_title, question.email, category.category, question.klay, question.time FROM question INNER JOIN category ON question.category_num = category.category_num AND question.q_selected = ? AND question.question_content LIKE '%?%' ORDER BY question.klay DESC";
                 var params = [question_state, keyword];
                 db.klaytndb.query(sql, params, function (err, result, fields) {
                     if (err) {
@@ -1036,7 +1037,7 @@ db.questionList = function (question_state, sort_num, keyword, category, callbac
         }
         else if (question_state == 1) { // Like 진행중
             if (sort_num == 0) { // 오래된 순
-                var sql = "SELECT question.question_num, question.question_title, question.email, category.category, question.klay, question.time FROM question INNER JOIN category ON question.category_num = category.category_num AND question.q_selected = ? AND question.question_content = ?";
+                var sql = "SELECT question.question_num, question.question_title, question.email, category.category, question.klay, question.time FROM question INNER JOIN category ON question.category_num = category.category_num AND question.q_selected = ? AND question.question_content LIKE '%?%'";
                 var params = [question_state, keyword];
                 db.klaytndb.query(sql, params, function (err, result, fields) {
                     if (err) {
@@ -1049,7 +1050,7 @@ db.questionList = function (question_state, sort_num, keyword, category, callbac
                 });
             }
             else if (sort_num == 1) { // 최신순
-                var sql = "SELECT question.question_num, question.question_title, question.email, category.category, question.klay, question.time FROM question INNER JOIN category ON question.category_num = category.category_num AND question.q_selected = ? AND question.question_content = ? ORDER BY question.time DESC";
+                var sql = "SELECT question.question_num, question.question_title, question.email, category.category, question.klay, question.time FROM question INNER JOIN category ON question.category_num = category.category_num AND question.q_selected = ? AND question.question_content LIKE '%?%' ORDER BY question.time DESC";
                 var params = [question_state, keyword];
                 db.klaytndb.query(sql, params, function (err, result, fields) {
                     if (err) {
@@ -1062,7 +1063,7 @@ db.questionList = function (question_state, sort_num, keyword, category, callbac
                 });
             }
             else { // klay 순
-                var sql = "SELECT question.question_num, question.question_title, question.email, category.category, question.klay, question.time FROM question INNER JOIN category ON question.category_num = category.category_num AND question.q_selected = ? AND question.question_content = ? ORDER BY question.klay DESC";
+                var sql = "SELECT question.question_num, question.question_title, question.email, category.category, question.klay, question.time FROM question INNER JOIN category ON question.category_num = category.category_num AND question.q_selected = ? AND question.question_content LIKE '%?%' ORDER BY question.klay DESC";
                 var params = [question_state, keyword];
                 db.klaytndb.query(sql, params, function (err, result, fields) {
                     if (err) {
@@ -1077,7 +1078,7 @@ db.questionList = function (question_state, sort_num, keyword, category, callbac
         }
         else { // 채택 완료
             if (sort_num == 0) { // 오래된 순
-                var sql = "SELECT question.question_num, question.question_title, question.email, category.category, question.klay, question.time FROM question INNER JOIN category ON question.category_num = category.category_num AND question.q_selected = ? AND question.question_content = ?";
+                var sql = "SELECT question.question_num, question.question_title, question.email, category.category, question.klay, question.time FROM question INNER JOIN category ON question.category_num = category.category_num AND question.q_selected = ? AND question.question_content LIKE '%?%'";
                 var params = [question_state, keyword];
                 db.klaytndb.query(sql, params, function (err, result, fields) {
                     if (err) {
@@ -1090,7 +1091,7 @@ db.questionList = function (question_state, sort_num, keyword, category, callbac
                 });
             }
             else if (sort_num == 1) { // 최신순
-                var sql = "SELECT question.question_num, question.question_title, question.email, category.category, question.klay, question.time FROM question INNER JOIN category ON question.category_num = category.category_num AND question.q_selected = ? AND question.question_content = ? ORDER BY question.time DESC";
+                var sql = "SELECT question.question_num, question.question_title, question.email, category.category, question.klay, question.time FROM question INNER JOIN category ON question.category_num = category.category_num AND question.q_selected = ? AND question.question_content LIKE '%?%' ORDER BY question.time DESC";
                 var params = [question_state, keyword];
                 db.klaytndb.query(sql, params, function (err, result, fields) {
                     if (err) {
@@ -1103,7 +1104,7 @@ db.questionList = function (question_state, sort_num, keyword, category, callbac
                 });
             }
             else { // klay 순
-                var sql = "SELECT question.question_num, question.question_title, question.email, category.category, question.klay, question.time FROM question INNER JOIN category ON question.category_num = category.category_num AND question.q_selected = ? AND question.question_content = ? ORDER BY question.klay DESC";
+                var sql = "SELECT question.question_num, question.question_title, question.email, category.category, question.klay, question.time FROM question INNER JOIN category ON question.category_num = category.category_num AND question.q_selected = ? AND question.question_content LIKE '%?%' ORDER BY question.klay DESC";
                 var params = [question_state, keyword];
                 db.klaytndb.query(sql, params, function (err, result, fields) {
                     if (err) {
@@ -1289,7 +1290,7 @@ db.selectAnswerLike = function (answer_num, callback) {
                                     return callback(false);
                                 }
                                 else {
-                                    return callback(result);
+                                    return callbakc(result);
                                 }
                             });
                         }
