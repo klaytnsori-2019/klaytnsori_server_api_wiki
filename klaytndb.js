@@ -706,7 +706,6 @@ db.category = function (callback) {
     });
 };
 
-
 db.insert_question1 = function (session_id, question_title, question_klay, question_content, category, trans_time, callback) {
     var params = [session_id];
     var sql = "SELECT count(email) as totals FROM userSession WHERE session_id = ?";
@@ -736,7 +735,17 @@ db.insert_question1 = function (session_id, question_title, question_klay, quest
                                     return callback(false);
                                 } // 질문 등록 성공
                                 else {
-                                    return callback(question_num);
+                                    var sql3 = "SELECT question_num FROM question WHERE question_title = ?";
+                                    var params3 = [question_title];
+                                    db.klaytndb.query(sql3, params3, function (err, results, fields) {
+                                        if (err) {
+                                            console.log(err);
+                                            return callback(false);
+                                        }
+                                        else {
+                                            return callback(result); // question_id 반환
+                                        }
+                                    });
                                 }
                             });
                         }
