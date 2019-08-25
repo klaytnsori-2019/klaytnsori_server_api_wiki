@@ -48,7 +48,7 @@ question.post('/insert_question', function(req,res,next){
     isValid = false;
     validationError.errors.question_title = {message : 'Title is empty' };
   }
-  if(!req.body.quetion_klay){
+  if(!req.body.question_klay){
     isValid = false;
     validationError.errors.question_klay = {message : 'Klay is empty' };
   }
