@@ -743,7 +743,7 @@ db.insert_question1 = function (session_id, question_title, question_klay, quest
                                             return callback(false);
                                         }
                                         else {
-                                            return callback(result); // question_id 반환
+                                            return callback(results); // question_num 반환
                                         }
                                     });
                                 }
