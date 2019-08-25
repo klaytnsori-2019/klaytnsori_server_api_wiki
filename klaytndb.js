@@ -793,7 +793,7 @@ db.insert_question2 = function (session_id, transaction, callback) {
                                             return callback(false);
                                         }
                                         else {
-                                            return callbakc(true); // transaction, wallet_address 저장
+                                            return callback(true); // transaction, wallet_address 저장
                                         }
                                     });
                                 }
@@ -1289,7 +1289,7 @@ db.selectAnswerLike = function (answer_num, callback) {
                                     return callback(false);
                                 }
                                 else {
-                                    return callbakc(result);
+                                    return callback(result);
                                 }
                             });
                         }
