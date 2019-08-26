@@ -736,7 +736,7 @@ db.insert_question1 = function (session_id, question_title, question_klay, quest
                                     return callback(false);
                                 } // 질문 등록 성공
                                 else {
-                                    var sql3 = "SELECT question_num FROM question WHERE question_title = ?";
+                                    var sql3 = "SELECT MAX(question_num) as max FROM question WHERE question_title = ?";
                                     var params3 = [question_title];
                                     db.klaytndb.query(sql3, params3, function (err, results, fields) {
                                         if (err) {
