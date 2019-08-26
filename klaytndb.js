@@ -553,20 +553,20 @@ db.my_answer_list = function (session_id, callback) {
     var params = [session_id];
     db.klaytndb.query(sql, params, function (err, result, fields) {
         if (result[0].total) {
-            var params = [session_id];
-            var sql = "SELECT email FROM userSession WHERE session_id = ?";
-            db.klaytndb.query(sql, params, function (err, result, fields) {
+            var params4 = [session_id];
+            var sql4 = "SELECT email FROM userSession WHERE session_id = ?";
+            db.klaytndb.query(sql, params, function (err, results, fields) {
                 if (err) {
                     console.log(err);
                     return callback(false);
                 }
                 else {
-                    var sql = "SELECT email, count(answer_content) as totals FROM answer WHERE email = ?";
-                    var params = [result[0].email];
-                    db.klaytndb.query(sql, params, function (err, result, fields) {
-                        if (result[0].totals) {
-                            var params2 = [result[0].email];
-                            var sql2 = "SELECT question.question_title ,answer.answer_content, answer.is_selected FROM question JOIN answer ON answer.email = ?";
+                    var sql3 = "SELECT email, count(answer_content) as totals FROM answer WHERE email = ?";
+                    var params3 = [results[0].email];
+                    db.klaytndb.query(sql3, params3, function (err, resultss, fields) {
+                        if (resultss[0].totals) {
+                            var params2 = [resultss[0].email];
+                            var sql2 = "SELECT question.question_title ,answer.answer_content, answer.is_selected FROM question JOIN answer ON answer.question_num = question.question_num AND answer.email = ?";
                             db.klaytndb.query(sql2, params2, function (err, result, fields) {
                                 if (err) {
                                     console.log(err);
