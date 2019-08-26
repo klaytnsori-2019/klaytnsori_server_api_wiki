@@ -1142,19 +1142,18 @@ db.questionListDefault = function (cur_time, callback) { // 모든 게시판 누
 };
 
 db.insertAnswer = function (session_id, answer_content, question_num, callback) {
-    var sql = "SELECT count(*) as total FROM answer";
-    db.klaytndb.query(sql, function (err, result, fields) {
-        if (err) {
-            console.log(err);
-            return callback(false);
-        }
-        else {
-            result[0].total = result[0].total + 1;
-            var params = [session_id];
-            var sql = "SELECT count(email) as totals FROM userSession WHERE session_id = ?";
-            db.klaytndb.query(sql, params, function (err, result, fields) {
-                if (result[0].totals) {
-                    var sql2 = "SELECT email FROM userSession WHERE session_id = ?";
+    var params = [session_id];
+    var sql = "SELECT count(email) as totals FROM userSession WHERE session_id = ?";
+    db.klaytndb.query(sql, params, function (err, result, fields) {
+        if (result[0].totals) {
+            var sql = "SELECT count(*) as total FROM answer";
+            db.klaytndb.query(sql, function (err, result, fields) {
+                if (err) {
+                    console.log(err);
+                    return callback(false);
+                }
+                else {
+                    var sql2 = "SELECT userSession.email, count(answer.answer_num) as totals FROM userSession JOIN answer ON userSession.session_id = ?";
                     var params2 = [session_id];
                     db.klaytndb.query(sql2, params2, function (err, results, fields) {
                         if (err) {
@@ -1162,8 +1161,9 @@ db.insertAnswer = function (session_id, answer_content, question_num, callback) 
                             return callback(false);
                         }
                         else {
+                            results[0].totals = results[0].totals + 1;
                             var sql3 = "INSERT INTO answer (answer_num, email, answer_content, question_num) VALUES (?, ?, ?, ?)";
-                            var params3 = [result[0].total, results[0].email, answer_content, question_num];
+                            var params3 = [results[0].totals, results[0].email, answer_content, question_num];
                             db.klaytndb.query(sql3, params3, function (err, result, fields) {
                                 if (err) {
                                     console.log(err);
@@ -1176,10 +1176,11 @@ db.insertAnswer = function (session_id, answer_content, question_num, callback) 
                         }
                     });
                 }
-                else {
-                    return callback(false);
-                }
+
             });
+        }
+        else {
+            return callback(false);
         }
     });
 };
