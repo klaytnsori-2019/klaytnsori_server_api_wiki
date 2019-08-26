@@ -555,7 +555,7 @@ db.my_answer_list = function (session_id, callback) {
         if (result[0].total) {
             var params4 = [session_id];
             var sql4 = "SELECT email FROM userSession WHERE session_id = ?";
-            db.klaytndb.query(sql, params, function (err, results, fields) {
+            db.klaytndb.query(sql4, params4, function (err, results, fields) {
                 if (err) {
                     console.log(err);
                     return callback(false);
