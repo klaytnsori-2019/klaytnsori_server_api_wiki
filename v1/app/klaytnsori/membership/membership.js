@@ -36,9 +36,9 @@ membership.post('/login', function(req, res, next){
    //email과 pw를 보내 디비에서 privatekey를 가져옴
    //privatekey로 caver에서 wallet 추가
    //db에 email을 보내서 세션 받기.
-   db.signup1(userEmail, (row)=>{
-     var verificationNum = row;
-     if(verificationNum){
+   db.find_pw_auth_identity1(userEmail, (row)=>{
+     var verificationEmail = row;
+     if(!verificationEmail){
        var dbError = {
            "name": 'DB',
            "errors": {}
@@ -48,12 +48,19 @@ membership.post('/login', function(req, res, next){
      }
      else{
        db.login1(userEmail, userPassword, (rows)=>{
+         if(rows == false){
+           var dbError = {
+               "name": 'DB',
+               "errors": {}
+           };
+           dbError.errors.db = { message: 'Cannot find in userInfo table' };
+           return res.json(result.successFalse(dbError));
+         }
          var userPrivatekey = rows[0].private_key;
          var caverOk = caver.addAccount(userPrivatekey);
          if(caverOk){
            db.login2(userEmail, (rows)=>{
              var userSession = rows[0].session_id;
-             console.log(userSession);
              var data = {
                "session_id" : userSession
              };
@@ -197,8 +204,8 @@ membership.post('/find_pw_auth_code', function(req, res, next){
     var userEmail = req.body.email;
     //DB에서 해당 email이 있는지 확인 후 count로 리턴
     db.find_pw_auth_identity1(userEmail, (rows)=>{
-      var emailCount = rows[0].total;
-      if(emailCount == 0){
+      var emailCount = rows;
+      if(emailCount){
         var authorizeText = "";
         var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
         for(var i = 0; i < 6 ; i++){
@@ -212,7 +219,7 @@ membership.post('/find_pw_auth_code', function(req, res, next){
               email : userEmail,
               authorize_text : authorizeText
             };
-            mail.transporter.sendMail(mail.mailOption(userEmail,authorizeText), function(err, info){
+            mail.transporter.sendMail(mail.mailOptionFindPw(userEmail,authorizeText), function(err, info){
                 return res.json(result.successTrue(data));
               });
           }
@@ -221,7 +228,7 @@ membership.post('/find_pw_auth_code', function(req, res, next){
                 "name": 'DB',
                 "errors": {}
             };
-            dbError.errors.db = { message: 'Cannot insert information in authUser table' };
+            dbError.errors.db = { message: 'Cannot insert information in userAuth table' };
             return res.json(result.successFalse(dbError));
           }
         });
@@ -283,8 +290,7 @@ membership.post('/find_pw_auth_identity', function (req, res, next) {
       return res.json(result.successFalse(codeError));
     }
     else{
-      //DB에서 해당 이메일의 매칭되어있는 password 리턴
-      db.changePassword(userEmail, userNewPassword, (row)=>{
+      db.find_pw_auth_identity4 (userEmail, userNewPassword, (row)=>{
         var dbOk = row;
         if(dbOk){
           var data = {message: 'Update password!'};
@@ -394,7 +400,7 @@ membership.post('/authorize_code', function (req, res, next) {
             "nickname" : userNickname,
             "authorize_text": authorizeText
           };
-          mail.transporter.sendMail(mail.mailOption(userEmail,authorizeText), function(err, info){
+          mail.transporter.sendMail(mail.mailOptionSignup(userEmail,authorizeText), function(err, info){
             return res.json(result.successTrue(data));
           });
       }

@@ -29,6 +29,14 @@ mypage.get('/',function(req,res,next){
   var userSession = req.query.session_id;
   //DB에서 session_id를 받아서 해당 유저의 account address 반환
   db.noname(userSession, (rows)=>{
+    if(rows==false){
+      var dbError = {
+          "name": 'DB',
+          "errors": {}
+      };
+      dbError.errors.db = { message: 'Cannot find user in userSession table' };
+      return res.json(result.successFalse(dbError));
+    }
     var userAccount = rows[0].wallet_address;
     var data = {
       account_address : userAccount
@@ -65,16 +73,29 @@ mypage.get('/transaction', function(req,res,next){
   //DB에서 세션 아이디로 해당 유저의 block리스트와 계좌를 반환
   //caver에서 block리스트와 유저 계좌보내면 트랜잭션 리스트를 보내줌
   db.showTransaction(userSession, (rows)=>{
-    var transactionList = rows;
-    caver.showTransactions(transactionList).then((transactions)=>{
-      for(var i in transactions){
-        var transactionHexTime = transactions[i].timestamp;
-        var transactionUnixTime = parseInt(transactionHexTime, 16);
-        var transactionDate = new Date(transactionUnixTime);
-        transactions[i].timestamp = transactionDate;
+    if(rows == false){
+      var dbError = {
+          "name": 'DB',
+          "errors": {}
+      };
+      dbError.errors.db = { message: 'Cannot find transactionList in transaction table' };
+      return res.json(result.successFalse(dbError));
+    }
+    else{
+      var transactionList = new Array;
+      for(var j = 10 in rows){
+        transactionList.push(rows[j].transaction);
       }
-      return res.json(result.successTrue(transactions));
-    });
+      caver.showTransactions(transactionList).then((transactions)=>{
+        for(var i in transactions){
+          var transactionHexTime = transactions[j].timestamp;
+          var transactionUnixTime = parseInt(transactionHexTime, 16);
+          var transactionDate = new Date(transactionUnixTime*1000+9*60*60*1000);
+          transactions[i].timestamp = transactionDate;
+        }
+        return res.json(result.successTrue(transactions));
+      });
+    }
   });
 });
 
@@ -105,11 +126,17 @@ mypage.get('/my_question_list', function(req,res,next){
   var userSession = req.query.session_id;
   //DB에서 세션아이디로 해당 유저의 질문을 제목,내용,클레이양, 카테고리, 상태를 리스트로 반환
   db.my_question_list(userSession, (rows)=>{
-    var data = new Array;
-    for(var i = 0; i < rows.length; i++){
-      data.push(rows[i]);
+    if(rows == false){
+      var dbError = {
+          "name": 'DB',
+          "errors": {}
+      };
+      dbError.errors.db = { message: 'Cannot find my questions in question table' };
+      return res.json(result.successFalse(dbError));
     }
-    return res.json(result.successTrue(data));
+    else{
+      return res.json(result.successTrue(rows));
+    }
   });
 });
 
@@ -140,11 +167,17 @@ mypage.get('/my_answer_list', function(req,res,next){
   var userSession = req.query.session_id;
   //DB에서 세션아이디로 해당 유저의 질문을 제목, 상태, 답변 내용을 리스트로 반환
   db.my_answer_list(userSession, (rows)=>{
-    var data = new Array;
-    for(var i = 0; i < rows.length; i++){
-      data.push(rows[i]);
+    if(rows == false){
+      var dbError = {
+          "name": 'DB',
+          "errors": {}
+      };
+      dbError.errors.db = { message: 'Cannot find my answers in answer table' };
+      return res.json(result.successFalse(dbError));
     }
-    return res.json(result.successTrue(data));
+    else{
+      return res.json(result.successTrue(rows));
+    }
   });
 });
 
@@ -175,11 +208,17 @@ mypage.get('/my_like_list', function(req,res,next){
   var userSession = req.query.session_id;
   //DB에서 세션아이디로 해당 유저의 질문 제목, 답변 내용, like수를 리스트로 반
   db.my_like_list(userSession, (rows)=>{
-    var data = new Array;
-    for(var i = 0; i < rows.length; i++){
-      data.push(rows[i]);
+    if(rows == false){
+      var dbError = {
+          "name": 'DB',
+          "errors": {}
+      };
+      dbError.errors.db = { message: 'Cannot find my like in like table' };
+      return res.json(result.successFalse(dbError));
     }
-    return res.json(result.successTrue(data));
+    else{
+      return res.json(result.successTrue(rows));
+    }
   });
 });
 
@@ -207,13 +246,23 @@ mypage.get('/my_remain_klay', function(req,res,next){
 }, function(req,res,next){
   var userSession = req.query.session_id;
   db.my_remain_klay(userSession,(rows)=>{
-    var userAccount = rows[0].wallet_address;
-    var klay = caver.showMyKlay(userAccount).then((klay)=>{
-      var data = {
-        "Klay" : klay
+    if(rows == false){
+      var dbError = {
+          "name": 'DB',
+          "errors": {}
       };
-      return res.json(result.successTrue(data));
-    });
+      dbError.errors.db = { message: 'Cannot find session id in session table' };
+      return res.json(result.successFalse(dbError));
+    }
+    else{
+      var userAccount = rows[0].wallet_address;
+      var klay = caver.showMyKlay(userAccount).then((klay)=>{
+        var data = {
+          "Klay" : klay
+        };
+        return res.json(result.successTrue(data));
+      });
+    }
   });
 });
 
