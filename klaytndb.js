@@ -1279,49 +1279,31 @@ db.selectAnswerOne = function (question_num, answer_num, callback) {
 };
 
 db.selectAnswerLike = function (answer_num, callback) {
-    var params = [answer_num];
-    var sql = "SELECT question_num FROM userLike WHERE answer_num = ?";
-    db.klaytndb.query(sql, params, function (err, result, fields) {
-        if (err) {
-            return callback(false);
-        }
-        else {
-            var params2 = [result[0].question_num];
-            var sql2 = "SELECT q_selected FROM question WHERE question_num = ?";
-            db.klaytndb.query(sql2, params2, function (err, result, fields) {
-                if (result[0].q_selected == 1) {
-                    var params3 = [answer_num];
-                    var sql3 = "SELECT count(email) as total FROM userLike WHERE answer_num = ?";
-                    db.klaytndb.query(sql3, params3, function (err, result, fields) {
-                        if (result[0].total) {
-                            var params4 = [answer_num];
-                            var sql4 = "SELECT email FROM userLike WHERE answer_num = ?";
-                            db.klaytndb.query(sql4, params4, function (err, result, fields) {
+    var params3 = [answer_num];
+    var sql3 = "SELECT count(email) as total FROM userLike WHERE answer_num = ?";
+    db.klaytndb.query(sql3, params3, function (err, result, fields) {
+        if (result[0].total) {
+            var params4 = [answer_num];
+            var sql4 = "SELECT email FROM userLike WHERE answer_num = ?";
+            db.klaytndb.query(sql4, params4, function (err, result, fields) {
+                if (err) {
+                    console.log(err);
+                    return callback(false);
+                }
+                else {
+                    var params5 = [result[0].email];
+                    var sql5 = "SELECT email, count(wallet_address) as totals FROM userInfo WHERE email = ?";
+                    db.klaytndb.query(sql5, params5, function (err, result, fields) {
+                        if (result[0].totals) {
+                            var params6 = [result[0].email];
+                            var sql6 = "SELECT wallet_address, privatef_key FROM userInfo WHERE email = ?";
+                            db.klaytndb.query(sql6, params6, function (err, result, fields) {
                                 if (err) {
                                     console.log(err);
                                     return callback(false);
                                 }
                                 else {
-                                    var params5 = [result[0].email];
-                                    var sql5 = "SELECT email, count(wallet_address) as totals FROM userInfo WHERE email = ?";
-                                    db.klaytndb.query(sql5, params5, function (err, result, fields) {
-                                        if (result[0].totals) {
-                                            var params6 = [result[0].email];
-                                            var sql6 = "SELECT wallet_address, private_key FROM userInfo WHERE email = ?";
-                                            db.klaytndb.query(sql6, params6, function (err, result, fields) {
-                                                if (err) {
-                                                    console.log(err);
-                                                    return callback(false);
-                                                }
-                                                else {
-                                                    return callback(result);
-                                                }
-                                            });
-                                        }
-                                        else {
-                                            return callback(false);
-                                        }
-                                    });
+                                    return callback(result);
                                 }
                             });
                         }
@@ -1330,10 +1312,10 @@ db.selectAnswerLike = function (answer_num, callback) {
                         }
                     });
                 }
-                else {
-                    return callback(false);
-                }
             });
+        }
+        else {
+            return callback(false);
         }
     });
 };
