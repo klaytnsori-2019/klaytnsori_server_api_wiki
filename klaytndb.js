@@ -485,54 +485,20 @@ db.my_question_list = function (session_id, callback) {
                     return callback(false);
                 }
                 else {
-                    var sql = "SELECT email, count(question_num) as totals FROM question WHERE email = ?";
-                    var params = [result[0].email];
-                    db.klaytndb.query(sql, params, function (err, result, fields) {
+                    var sql2 = "SELECT email, count(question_num) as totals FROM question WHERE email = ?";
+                    var params2 = [result[0].email];
+                    db.klaytndb.query(sql2, params2, function (err, result, fields) {
                         if (result[0].totals) {
-                            var params2 = [result[0].email];
-                            var sql3 = "SELECT question_num FROM question WHERE email = ?";
-                            db.klaytndb.query(sql3, params2, function (err, result, fields) {
+                            var params3 = [result[0].email];
+                            var sql3 = "SELECT question.question_title, question.question_content, question.klay, category.category, question.q_selected FROM question INNER JOIN category ON question.email = ?  AND question.category_num = category.category_num";
+                            db.klaytndb.query(sql3, params3, function (err, result, fields) {
                                 if (err) {
                                     console.log(err);
                                     return callback(false);
                                 }
                                 else {
-                                    var params3 = [result[0].question_num];
-                                    var sql4 = "SELECT count(is_selected) as totalss FROM answer WHERE question_num = ?";
-                                    db.klaytndb.query(sql4, params3, function (err, result, fields) {
-                                        if (err) {
-                                            console.log(err);
-                                            return callback(false);
-                                        }
-                                        else {
-                                            if (result[0].totalss == 0) { // 답변 없는 경우
-                                                var sql5 = "SELECT question.question_title, question.question_content, question.klay, category.category FROM question INNER JOIN category ON question.question_num = ?  AND question.category_num = category.category_num";
-                                                db.klaytndb.query(sql5, params3, function (err, result, fields) {
-                                                    if (err) {
-                                                        console.log(err);
-                                                        return callback(false);
-                                                    }
-                                                    else {
-                                                        result[0].is_selected = "false"; // 답변이 없으니 채택 여부 false
-                                                        return callback(result); // 해당 유저의 질문을 제목,내용,클레이양, 카테고리, 상태를 리스트로 반환
-                                                    }
-                                                });
-                                            }
-                                            else { // 답변 있는 경우
-                                                var sql6 = "SELECT question.question_num, question.email, question.question_title, category.category, question.question_content, question.klay, question.time, answer.is_selected FROM question INNER JOIN answer ON question.question_num = ? AND question.question_num = answer.question_num INNER JOIN category ON question.category_num = category.category_num";
-                                                db.klaytndb.query(sql6, params3, function (err, result, fields) {
-                                                    if (err) {
-                                                        console.log(err);
-                                                        return callback(false);
-                                                    }
-                                                    else {
-                                                        return callback(result); // 해당 유저의 질문을 제목,내용,클레이양, 카테고리, 상태를 리스트로 반환
-                                                    }
-                                                });
-                                            }
-                                        }
-                                    });
-                                }
+                                    return callback(result); // 해당 유저의 질문을 제목,내용,클레이양, 카테고리, 상태를 리스트로 반환 -> 상태는 밑에 부연 설명
+                                } // 질문 상태 0: 답변 진행중, 1: Like 진행중, 2: 답변 채택
                             });
                         }
                         else {
@@ -1220,79 +1186,133 @@ db.insertLike = function (session_id, question_num, answer_num, callback) {
 };
 
 db.selectAnswerOne = function (question_num, answer_num, callback) {
-    var sql4 = "UPDATE question SET q_selected = 2 WHERE question_num = ?";
-    var params4 = [question_num];
-    db.klaytndb.query(sql4, params4, function (err, result, fields) {
-        if (err) {
-            console.log(err);
-            return callback(false);
-        }
-    }); // 질문 상태 채택 여부 true
-
-    var sql = "UPDATE answer SET is_selected = true WHERE question_num = ? AND answer_num = ?";
-    var params = [question_num, answer_num];
-    db.klaytndb.query(sql, params, function (err, result, fields) {
-        if (err) {
-            console.log(err);
-            return callback(false);
-        } // 답변 상태 채택 여부 true로 변경
-    });
-    var params = [question_num];
-    var sql = "SELECT count(email) as total FROM answer WHERE question_num = ?";
-    db.klaytndb.query(sql, params, function (err, result, fields) {
-        if (result[0].total) {
-            var sql2 = "SELECT answer.email as a_email, question.email as q_email FROM answer JOIN question ON answer.answer_num = ? AND question.question_num = ?";
-            var params2 = [answer_num, question_num];
-            db.klaytndb.query(sql2, params2, function (err, result, fields) {
+    var params3 = [question_num];
+    var sql3 = "SELECT q_selected FROM question WHERE question_num = ?";
+    db.klaytndb.query(sql3, params3, function (err, result, fields) {
+        if (result[0].q_selected != 2) {
+            var sql4 = "UPDATE question SET q_selected = 2 WHERE question_num = ?";
+            var params4 = [question_num];
+            db.klaytndb.query(sql4, params4, function (err, result, fields) {
                 if (err) {
                     console.log(err);
                     return callback(false);
                 }
-                else {
-                    var sql3 = "SELECT userInfo.wallet_address as answer_wallet_address, userInfo.private_key as answer_private_key, userInfo.wallet_address as questioner_wallet_address, question.klay as klay FROM userInfo JOIN question ON userInfo.email = ? OR userInfo.email = ? OR qustion.email = ?";
-                    var params3 = [result[0].a_email, result[0].q_email, result[0].q_email];
-                    db.klaytndb.query(sql3, params3, function (err, rows, fields) {
+            }); // 질문 상태 채택 여부 true
+
+            var sql = "UPDATE answer SET is_selected = true WHERE question_num = ? AND answer_num = ?";
+            var params = [question_num, answer_num];
+            db.klaytndb.query(sql, params, function (err, result, fields) {
+                if (err) {
+                    console.log(err);
+                    return callback(false);
+                } // 답변 상태 채택 여부 true로 변경
+            });
+
+            var params1 = [question_num];
+            var sql1 = "SELECT count(email) as total FROM answer WHERE question_num = ?";
+            db.klaytndb.query(sql1, params1, function (err, result, fields) {
+                if (result[0].total) {
+                    var sql2 = "SELECT email FROM question WHERE question_num = ?";
+                    var params2 = [question_num];
+                    db.klaytndb.query(sql2, params2, function (err, result, fields) {
                         if (err) {
                             console.log(err);
                             return callback(false);
                         }
                         else {
-                            return callback(rows); // answer_wallet_address, answer_private_key, questioner_wallet_address, klay 반환
-                        }
-                    });
-                }
-            });
-        }
-        else callback(false);
-    });
-};
-
-db.selectAnswerLike = function (answer_num, callback) {
-    var params = [answer_num];
-    var sql = "SELECT count(email) as total FROM userLike WHERE answer_num = ?";
-    db.klaytndb.query(sql, params, function (err, result, fields) {
-        if (result[0].total) {
-            var params = [answer_num];
-            var sql = "SELECT email FROM userLike answer_num = ?";
-            db.klaytndb.query(sql, params, function (err, result, fields) {
-                if (err) {
-                    console.log(err);
-                    return callback(false);
-                }
-                else {
-                    var params = [result[0].email];
-                    var sql = "SELECT email, count(wallet_address) as totals FROM userInfo WHERE email = ?";
-                    db.klaytndb.query(sql, params, function (err, result, fields) {
-                        if (result[0].totals) {
-                            var params2 = [result[0].email];
-                            var sql2 = "SELECT wallet_address, private_key FROM userInfo WHERE email = ?";
-                            db.klaytndb.query(sql2, params2, function (err, result, fields) {
+                            var sql3 = "SELECT userInfo.wallet_address as questioner_wallet_address, question.klay as klay FROM userInfo JOIN question ON userInfo.email = ? AND question.question_num = ?";
+                            var params3 = [result[0].email, question_num];
+                            db.klaytndb.query(sql3, params3, function (err, rows, fields) {
                                 if (err) {
                                     console.log(err);
                                     return callback(false);
                                 }
                                 else {
-                                    return callback(result);
+                                    var sql2 = "SELECT email FROM answer WHERE answer_num = ?";
+                                    var params2 = [answer_num];
+                                    db.klaytndb.query(sql2, params2, function (err, result, fields) {
+                                        if (err) {
+                                            return callback(false);
+                                        }
+                                        else {
+                                            var sql4 = "SELECT wallet_address, private_key FROM userInfo WHERE email = ?";
+                                            var params4 = [result[0].email];
+                                            db.klaytndb.query(sql4, params4, function (err, row, fields) {
+                                                if (err) {
+                                                    return callback(false);
+                                                }
+                                                else {
+                                                    var data = {
+                                                        "questioner_wallet_address": rows[0].questioner_wallet_address,
+                                                        "answer_wallet_address": row[0].wallet_address,
+                                                        "answer_private_key": row[0].private_key,
+                                                        "klay": rows[0].klay
+                                                    }
+                                                    return callback(data); // answer_wallet_address, answer_private_key, questioner_wallet_address, klay 반환
+                                                }
+                                            });
+                                        }
+                                    });
+                                }
+                            });
+                        }
+                    });
+                }
+                else {
+                    return callback(false);
+                }
+            });
+        }
+        else {
+            return callback(false);
+        }
+    });
+};
+
+db.selectAnswerLike = function (answer_num, callback) {
+    var params = [answer_num];
+    var sql = "SELECT question_num FROM userLike WHERE answer_num = ?";
+    db.klaytndb.query(sql, params, function (err, result, fields) {
+        if (err) {
+            return callback(false);
+        }
+        else {
+            var params2 = [result[0].question_num];
+            var sql2 = "SELECT q_selected FROM question WHERE question_num = ?";
+            db.klaytndb.query(sql2, params2, function (err, result, fields) {
+                if (result[0].q_selected == 1) {
+                    var params3 = [answer_num];
+                    var sql3 = "SELECT count(email) as total FROM userLike WHERE answer_num = ?";
+                    db.klaytndb.query(sql3, params3, function (err, result, fields) {
+                        if (result[0].total) {
+                            var params4 = [answer_num];
+                            var sql4 = "SELECT email FROM userLike WHERE answer_num = ?";
+                            db.klaytndb.query(sql4, params4, function (err, result, fields) {
+                                if (err) {
+                                    console.log(err);
+                                    return callback(false);
+                                }
+                                else {
+                                    var params5 = [result[0].email];
+                                    var sql5 = "SELECT email, count(wallet_address) as totals FROM userInfo WHERE email = ?";
+                                    db.klaytndb.query(sql5, params5, function (err, result, fields) {
+                                        if (result[0].totals) {
+                                            var params6 = [result[0].email];
+                                            var sql6 = "SELECT wallet_address, private_key FROM userInfo WHERE email = ?";
+                                            db.klaytndb.query(sql6, params6, function (err, result, fields) {
+                                                if (err) {
+                                                    console.log(err);
+                                                    return callback(false);
+                                                }
+                                                else {
+                                                    return callback(result);
+                                                }
+                                            });
+                                        }
+                                        else {
+                                            return callback(false);
+                                        }
+                                    });
                                 }
                             });
                         }
@@ -1301,10 +1321,10 @@ db.selectAnswerLike = function (answer_num, callback) {
                         }
                     });
                 }
+                else {
+                    return callback(false);
+                }
             });
-        }
-        else {
-            return callback(false);
         }
     });
 };
