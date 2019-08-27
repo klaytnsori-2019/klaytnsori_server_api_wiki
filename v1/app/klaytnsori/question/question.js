@@ -209,19 +209,20 @@ question.get('/question_list',function(req,res,next){
     var questionCategory = 0;
   }
   else{
-    questionCategory = req.query.category;
+    var questionCategory = req.query.category;
   }
   if(!req.query.sort_num){
     var questionSort = 0;
   }
   else{
-    questionSort = req.query.sort_num;
+    var questionSort = req.query.sort_num;
   }
   if(!req.query.keyword){
     var questionKeyword = "%%";
   }
   else{
-    questionKeyword = req.query.keyword;
+    var string = "%";
+    var questionKeyword = string + req.query.keyword + string;
   }
 
   db.questionList(questionState, currentTime, questionDefault, questionSort, questionKeyword, questionCategory, (rows)=>{
@@ -236,7 +237,7 @@ question.get('/question_list',function(req,res,next){
     else{
       return res.json(result.successTrue(rows));
     }
-  })
+  });
 });
 
 /*
@@ -433,6 +434,7 @@ question.post('/select_answer',function(req,res,next){
     else if(selectEnable == 1){
       var answerKlay = questionKlay*0.7;
       answerKlay = String(answerKlay);
+      console.log(answerKlay);
       caver.getReward(answerAccount, answerPrivatekey, questionerAccount, answerKlay).then((receipt)=>{
         var txHash = receipt.transactionHash;
         db.registerTransaction(txHash, answerAccount, (rows)=>{
@@ -471,6 +473,7 @@ question.post('/select_answer',function(req,res,next){
         }
         var likeKlay = questionKlay*0.3/rows.length;
         likeKlay = String(likeKlay);
+        console.log(likeKlay);
         for(var i in rows){
           caver.getReward(rows[i].wallet_address, rows[i].private_key, questionerAccount, likeKlay).then((receipt)=>{
             var txHash = receipt.transactionHash;
@@ -487,10 +490,10 @@ question.post('/select_answer',function(req,res,next){
             });
           });
         }
-        var data = {message : "Success!"};
-        return res.json(result.successTrue(data));
       });
     }
+    var data = {message : "Success!"};
+    return res.json(result.successTrue(data));
   });
 });
 
