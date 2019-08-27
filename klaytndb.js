@@ -1153,29 +1153,38 @@ db.insertAnswer = function (session_id, answer_content, question_num, callback) 
 };
 
 db.insertLike = function (session_id, question_num, answer_num, callback) {
-    var params = [session_id];
-    var sql = "SELECT count(email) as total FROM userSession WHERE session_id = ?";
-    db.klaytndb.query(sql, params, function (err, result, fields) {
-        if (result[0].total) {
-            var sql2 = "SELECT email FROM userSession WHERE session_id = ?";
-            var params2 = [session_id];
-            db.klaytndb.query(sql2, params2, function (err, results, fields) {
-                if (err) {
-                    console.log(err);
-                    return callback(false);
-                }
-                else {
-                    var sql = "INSERT INTO userLike (question_num, answer_num ,email) VALUES (?, ?, ?)";
-                    var params = [question_num, answer_num, results[0].email];
-                    db.klaytndb.query(sql, params, function (err, result, fields) {
+    var params2 = [question_num];
+    var sql2 = "SELECT q_selected FROM question WHERE question_num = ?";
+    db.klaytndb.query(sql2, params2, function (err, result, fields) {
+        if (result[0].q_selected == 1) {
+            var params = [session_id];
+            var sql = "SELECT count(email) as total FROM userSession WHERE session_id = ?";
+            db.klaytndb.query(sql, params, function (err, result, fields) {
+                if (result[0].total) {
+                    var sql2 = "SELECT email FROM userSession WHERE session_id = ?";
+                    var params2 = [session_id];
+                    db.klaytndb.query(sql2, params2, function (err, results, fields) {
                         if (err) {
                             console.log(err);
                             return callback(false);
-                        } // like 성공
+                        }
                         else {
-                            return callback(true);
+                            var sql = "INSERT INTO userLike (question_num, answer_num ,email) VALUES (?, ?, ?)";
+                            var params = [question_num, answer_num, results[0].email];
+                            db.klaytndb.query(sql, params, function (err, result, fields) {
+                                if (err) {
+                                    console.log(err);
+                                    return callback(false);
+                                } // like 성공
+                                else {
+                                    return callback(true);
+                                }
+                            });
                         }
                     });
+                }
+                else {
+                    return callback(false);
                 }
             });
         }
