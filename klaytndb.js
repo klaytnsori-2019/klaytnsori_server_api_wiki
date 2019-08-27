@@ -1296,7 +1296,7 @@ db.selectAnswerLike = function (answer_num, callback) {
                     db.klaytndb.query(sql5, params5, function (err, result, fields) {
                         if (result[0].totals) {
                             var params6 = [result[0].email];
-                            var sql6 = "SELECT wallet_address, privatef_key FROM userInfo WHERE email = ?";
+                            var sql6 = "SELECT wallet_address, private_key FROM userInfo WHERE email = ?";
                             db.klaytndb.query(sql6, params6, function (err, result, fields) {
                                 if (err) {
                                     console.log(err);
