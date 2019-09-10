@@ -83,10 +83,11 @@ db.loginFirst = function (u_email, u_pw, callback) {
                 return callback(rows4);
               });
             }
-          }
-          else {
-            return callback(false);
-          }
+          });
+        }
+        else {
+          return callback(false);
+        }
     });
 }; // use
 
@@ -134,8 +135,8 @@ db.selectSession = function (u_email, callback){
 db.loginSecond = function (u_email, callback) {
     db.maxSession((rows1)=>{
       if (rows1) {
-            rows1[0].max = rows1[0].max + 1;
-            db.insertSession((rows1[0].max, u_email, rows2)=>{
+            var session_id = rows1[0].max + 1;
+            db.insertSession(session_id, u_email, (rows2)=>{
               if(rows2){
                 db.selectSession(u_email, (rows3)=>{
                     return callback(rows3);
@@ -206,7 +207,7 @@ db.selectWalletAddress = function (u_email, callback){
   });
 };
 
-db.logoutFist = function (logout_session_id, callback) {
+db.logoutFirst = function (logout_session_id, callback) {
     db.countEmail(logout_session_id, (rows1)=>{
       if (rows1){
             db.selectEmail(logout_session_id, (rows2)=>{
@@ -250,18 +251,22 @@ db.selectWalletAndPK = function (u_email, callback){
 db.getWalletaddressAndPK = function (session_id, callback) {
     db.countEmail(session_id, (rows1)=>{
       if(rows1){
-            db.selectEmail(session_id, (rows2)=>{
-              if(rows2){
-                    db.countWallet(session_id, (rows3)=>{
-                      if(rows3){
-                        db.selectWalletAndPK(rows3[0].email, (rows4)=>{
-                          return callback(rows4);
-                        });
-                        }
-                        else { // wallet_address 없음
-                            return callback(false);
-                        }
+        db.selectEmail(session_id, (rows2)=>{
+          if(rows2){
+            var u_email = rows2[0].email;
+                db.countWallet(u_email, (rows3)=>{
+                  if(rows3){
+                    db.selectWalletAndPK(u_email, (rows4)=>{
+                      return callback(rows4);
                     });
+                  }
+                  else {
+                      return callback(false);
+                  }
+              });
+          }
+                else{
+                  return callback(false);
                 }
             });
         }
@@ -312,7 +317,7 @@ db.insertInfo = function (u_email, u_pw, u_nick, _address, _privateK, callback){
     });
 };
 
-db.deleteEmail = function(u_email, callback){
+db.deleteEmail = function (u_email, callback){
   var sql = "DELETE FROM authEmail WHERE email = ?";
   var params = [u_email];
   db.klaytndb.query(sql, params, function (err, result, fields) {
@@ -327,14 +332,6 @@ db.deleteEmail = function(u_email, callback){
 };
 
 db.signupSecond = function (u_email, u_pw, u_nick, _address, _privateK, callback) {
-    var data = {
-        "email": u_email,
-        "password": u_pw,
-        "nickname": u_nick,
-        "wallet_address": _address,
-        "privateK": _privateK
-    };
-
     db.insertInfo(u_email, u_pw, u_nick, _address, _privateK, (rows1)=>{
       if(rows1){
             db.deleteEmail(u_email, (rows2)=>{
@@ -346,8 +343,6 @@ db.signupSecond = function (u_email, u_pw, u_nick, _address, _privateK, callback
         }
     });
 }; // use
-
-// db.findPassword = function (u_email, authorize_text, callback)
 
 db.findPasswordFirst = function (u_email, callback) {
     var params = [u_email];
@@ -443,7 +438,10 @@ db.deleteAuthPW = function (u_email, callback){
       if (err) {
           console.log(err);
           return callback(false);
-      } // 인증 코드 삭제
+      }
+      else{
+        return callback(false);
+      }
   });
 };
 
@@ -456,7 +454,7 @@ db.updatePassword = function (u_email, u_pw, callback){
           return callback(false);
       }
       else {
-          return callback(true); // pw 변경 성공
+          return callback(true);
       }
   });
 };
@@ -490,7 +488,7 @@ db.getWalletAddress = function (session_id, callback) {
     db.countEmail(session_id, (rows1)=>{
       if(rows1){
             db.selectEmail(session_id, (rows2)=>{
-              if(rows2)
+              if(rows2){
                     db.countWallet(rows2[0].email, (rows3)=>{
                       if(rows3){
                             db.selectWalletAddress(rows3[0].email, (rows4)=>{
@@ -529,7 +527,7 @@ db.countTransaction = function(wallet_address, callback){
   var params = [wallet_address];
   db.klaytndb.query(sql, params, function (err, result, fields) {
       if (result[0].total) {
-        return callback(true);
+        return callback(result);
       }
       else{
         return callback(false);
@@ -561,7 +559,7 @@ db.showTransaction = function (session_id, callback) {
                             db.selectWalletAddress(rows3[0].email, (rows4)=>{
                               if(rows4){
                                     db.countTransaction(rows4[0].wallet_address, (rows5)=>{
-                                      if(rows5)
+                                      if(rows5){
                                             db.selectTransaction(rows5[0].wallet_address, (rows6)=>{
                                               return callback(rows6);
                                             });
@@ -582,6 +580,8 @@ db.showTransaction = function (session_id, callback) {
             return callback(false);
         }
     });
+  }
+});
 }; // use
 
 db.countQuestionNum = function(u_email, callback){
@@ -665,7 +665,7 @@ db.selectMyAnswer = function(u_email, callback){
 db.myAnswerList = function (session_id, callback) {
     db.countEmail(session_id, (rows1)=>{
       if(rows1){
-            db.selectEmail(rows1[0].email, (rows2)=>{
+            db.selectEmail(session_id, (rows2)=>{
               if(rows2){
                     db.countAnswerContent(rows2[0].email, (rows3)=>{
                       if(rows3){
@@ -778,7 +778,7 @@ db.myLikeList = function (session_id, callback) {
 db.myRemainKlay = function (session_id, callback) {
     db.countEmail(session_id, (rows1)=>{
       if(rows1){
-            db.selectEmail(rows1[0].email, (rows2)=>{
+            db.selectEmail(session_id, (rows2)=>{
               if(rows2){
                     db.countWallet(rows2[0].email, (rows3)=>{
                       if(rows3){
@@ -816,7 +816,7 @@ db.countQuestion = function(callback){
   var sql = "SELECT count(*) as total FROM question";
   db.klaytndb.query(sql, function (err, result, fields) {
       if (result[0].total) {
-          return callback(true);
+          return callback(result);
       }
       else {
         return callback(false);
@@ -881,7 +881,7 @@ db.insertQuestionFirst = function (session_id, question_title, question_klay, qu
 db.insertQuestionSecond = function (session_id, transaction, callback) {
   db.selectEmail(session_id, (rows)=>{
     if(rows){
-      var u_email = result[0].email;
+      var u_email = rows[0].email;
       db.countWallet(u_email, (rows)=>{
         if(rows){
           db.selectWalletAddress(u_email, (rows)=>{
@@ -922,7 +922,7 @@ db.countIsSelected = function (question_num, callback) {
           return callback(false);
       }
       else {
-        return callback(true);
+        return callback(result);
       }
     });
 };
@@ -980,10 +980,9 @@ db.showQuestion = function (question_num, callback) {
     });
 }; // use
 
-db.updateQuestionState = function (cur_time, callback) {
-  var sql = "UPDATE question SET q_selected = 1 WHERE ? - time >= '0000-00-07 00:00:00'";
-  var params = [cur_time];
-  db.klaytndb.query(sql, params, function (err, result, fields) {
+db.updateQuestionState = function (callback) {
+  var sql = "UPDATE question SET q_selected = 1 WHERE question_num >= 0 AND DATE(time) < DATE(SUBDATE(NOW(), INTERVAL 7 DAY))";
+  db.klaytndb.query(sql, function (err, result, fields) {
       if (err) {
           console.log(err);
           return callback(false);
@@ -1092,7 +1091,7 @@ db.selectQuestionKlay = function (question_state, keyword, category, callback) {
 };
 
 db.showQuestionList = function (question_state, cur_time, allList, sort_num, keyword, category, callback) {
-  db.updateQuestionState(cur_time, (rows)=>{});
+  db.updateQuestionState((rows)=>{});
     if (allList == 0) { // 모든 질문
         db.selectAllQuestionList((rows)=>{
           return callback(rows);
@@ -1409,7 +1408,7 @@ db.selectEmailAnswerNum = function (answer_num, callback) {
 };
 
 db.selectAnswer = function (question_num, answer_num, callback) {
-    db.selectQuestionState(qustion_num, (rows1)=>{
+    db.selectQuestionState(question_num, (rows1)=>{
       if(rows1[0].q_selected != 2){
             db.updateQuestionStateSelected(question_num, (rows2)=>{});
             db.updateAnswerIsSelected(question_num, answer_num, (rows3)=>{});
@@ -1425,11 +1424,14 @@ db.selectAnswer = function (question_num, answer_num, callback) {
                               if(rows8){
                                 var data = {
                                   "questioner_wallet_address": rows6[0].questioner_wallet_address,
-                                  "answer_wallet_address": row8[0].wallet_address,
-                                  "answer_private_key": row8[0].private_key,
+                                  "answer_wallet_address": rows8[0].wallet_address,
+                                  "answer_private_key": rows8[0].private_key,
                                   "klay": rows6[0].klay
                                 }
-                              return callback(data); // answer_wallet_address, answer_private_key, questioner_wallet_address, klay 반환
+                              return callback(data);
+                              }
+                              else{
+                                return callback(false);
                               }
                             });
                            }
