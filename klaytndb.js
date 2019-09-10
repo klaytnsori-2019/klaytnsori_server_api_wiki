@@ -178,7 +178,7 @@ db.getWalletaddressAndPK = function (session_id, callback) {
     });
 };
 
-db.logout2 = function (logout_session_id, callback) {
+db.logoutSecond = function (logout_session_id, callback) {
     var params = [logout_session_id];
     var sql = "DELETE FROM userSession WHERE session_id = ?";
     db.klaytndb.query(sql, params, function (err, result, fields) {
@@ -192,7 +192,7 @@ db.logout2 = function (logout_session_id, callback) {
     });
 };
 
-db.signup1 = function (u_email, callback) {
+db.signupFirst = function (u_email, callback) {
     var params = [u_email];
     var sql = "SELECT count(email) as total FROM userInfo WHERE email = ?";
     db.klaytndb.query(sql, params, function (err, result, fields) {
@@ -242,7 +242,7 @@ db.signup2 = function (u_email, u_pw, u_nick, _address, _privateK, callback) {
     });
 };
 
-db.find_pw_auth_identity1 = function (u_email, callback) {
+db.findPasswordFirst = function (u_email, callback) {
     var params = [u_email];
     var sql = "SELECT count(email) as total FROM userInfo WHERE email = ?";
     db.klaytndb.query(sql, params, function (err, result, fields) {
@@ -262,7 +262,7 @@ db.find_pw_auth_identity1 = function (u_email, callback) {
     });
 };
 
-db.find_pw_auth_identity2 = function (u_email, authorize_text, callback) {
+db.findPasswordSecond = function (u_email, authorize_text, callback) {
     var params = [u_email, authorize_text];
     var sql = "INSERT INTO userAuth (email, code) VALUES (?, ?)";
     db.klaytndb.query(sql, params, function (err, result, fields) {
@@ -397,7 +397,7 @@ db.noname = function (session_id, callback) {
     });
 };
 
-db.registerTransaction = function (transaction, wallet_address, callback) { // 트랜잭션, 지갑 주소 저장
+db.insertTransaction = function (transaction, wallet_address, callback) { // 트랜잭션, 지갑 주소 저장
     var params = [transaction, wallet_address];
     var sql = "INSERT INTO transaction VALUES (?, ?)";
     db.klaytndb.query(sql, params, function (err, result, fields) {
