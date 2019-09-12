@@ -64,13 +64,17 @@ db.checkEmailAndPassword = function (u_email, u_pw, callback) {
 
 db.checkAuthUser = function (u_email, callback) {
   var params = [u_email];
-  var sql = "SELECT authUser FROM userInfo WHERE email = ?";
+  var sql = "SELECT authUser as auth FROM userInfo WHERE email = ?";
   db.klaytndb.query(sql, params, function (err, result, fields) {
-      if (result[0].anthUser) {
-          return callback(true);
+      if (err) {
+          return callback(false);
       }
       else {
+        if(result[0].auth)
+          return callback(true);
+        else{
           return callback(false);
+          }
       }
   });
 };
@@ -87,9 +91,6 @@ db.loginFirst = function (u_email, u_pw, callback) {
                         db.getPrivatekey(u_email, (rows4)=>{
                             return callback(rows4);
                           });
-                    }
-                    else {
-                        return callback(false);
                     }
                   });
              }
