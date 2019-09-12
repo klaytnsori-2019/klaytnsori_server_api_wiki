@@ -62,7 +62,22 @@ db.checkEmailAndPassword = function (u_email, u_pw, callback) {
     });
 };
 
+db.checkAuthUser = function (u_email, callback) {
+  var params = [u_email];
+  var sql = "SELECT authUser FROM userInfo WHERE email = ?";
+  db.klaytndb.query(sql, params, function (err, result, fields) {
+      if (result[0].anthUser) {
+          return callback(true);
+      }
+      else {
+          return callback(false);
+      }
+  });
+};
+
 db.loginFirst = function (u_email, u_pw, callback) {
+  db.checkAuthUser(u_email, (rows)=>{
+    if(rows){
     db.checkEmailAndPassword(u_email, u_pw, (rows1)=>{
         if(rows1){
         db.countSession(u_email, (rows2)=>{
@@ -89,6 +104,11 @@ db.loginFirst = function (u_email, u_pw, callback) {
           return callback(false);
         }
     });
+  }
+  else{
+    return callback(false);
+  }
+  });
 }; // use
 
 db.maxSession = function (callback){
@@ -290,7 +310,7 @@ db.logoutSecond = function (logout_session_id, callback) {
   });
 }; // use
 
-db.signupFirst = function (u_email, callback) {
+db.checkEmail = function (u_email, callback) {
   var params = [u_email];
   var sql = "SELECT count(email) as total FROM userInfo WHERE email = ?";
   db.klaytndb.query(sql, params, function (err, result, fields) {
@@ -303,9 +323,9 @@ db.signupFirst = function (u_email, callback) {
     });
 }; // use
 
-db.insertInfo = function (u_email, u_pw, u_nick, _address, _privateK, callback){
-  var params = [u_email, u_pw, u_nick, _address, _privateK];
-  var sql = "INSERT INTO userInfo (email, password, nickname, wallet_address, private_key) VALUES (?, ?, ?, ?, ?)";
+db.insertWalletAndPK = function (u_email, _address, _privateK, callback){
+  var params = [_address, _privateK, u_email];
+  var sql = "UPDATE userInfo SET wallet_address = ?, private_key = ?, authUser = true WHERE email = ?";
   db.klaytndb.query(sql, params, function (err, result, fields) {
       if (err) {
           console.log(err);
@@ -331,8 +351,24 @@ db.deleteEmail = function (u_email, callback){
   });
 };
 
-db.signupSecond = function (u_email, u_pw, u_nick, _address, _privateK, callback) {
-    db.insertInfo(u_email, u_pw, u_nick, _address, _privateK, (rows1)=>{
+db.signupNotAuthUser = function (u_email, callback) {
+  var sql = "DELETE FROM userInfo WHERE email = ?";
+  var params = [u_email];
+  db.klaytndb.query(sql, params, function (err, result, fields) {
+      if (err) {
+          console.log(err);
+          return callback(false);
+      }
+      else {
+        db.deleteEmail(u_email, (rows2)=>{
+          return callback(rows2);
+        });
+      }
+  });
+}; // use
+
+db.signupAuthUser = function (u_email,  _address, _privateK, callback) {
+    db.insertWalletAndPK(u_email, _address, _privateK, (rows1)=>{
       if(rows1){
             db.deleteEmail(u_email, (rows2)=>{
               return callback(rows2);
@@ -371,6 +407,22 @@ db.findPasswordSecond = function (u_email, authorize_text, callback) {
     });
 }; // use
 
+db.authInsertInfoAndAuth = function (u_email, u_pw, u_nick, authorize_text, callback) {
+  var params = [u_email, u_pw, u_nick];
+  var sql = "INSERT INTO userInfo (email, password, nickname) VALUES (?, ?, ?)";
+  db.klaytndb.query(sql, params, function (err, result, fields) {
+      if (err) {
+          console.log(err);
+          return callback(false);
+      }
+      else {
+          db.authIdentityEmail(u_email, authorize_text, (rows)=>{
+            return callback(true);
+          });
+      }
+  });
+}; // use
+
 db.authIdentityEmail = function (u_email, authorize_text, callback) {
     var params = [u_email, authorize_text];
     var sql = "INSERT INTO authEmail (email, codeEmail) VALUES (?, ?)";
@@ -383,7 +435,7 @@ db.authIdentityEmail = function (u_email, authorize_text, callback) {
             return callback(true); // 인증 코드 저장 성공
         }
     });
-}; // use
+};
 
 db.authIdentityCodePW = function (u_email, callback) {
     var sql = "SELECT count(codePW) as total FROM authPW WHERE email = ?";
@@ -810,7 +862,7 @@ db.selectAllCategory = function (callback) {
             return callback(result);
         }
     });
-};
+}; // use
 
 db.countQuestion = function(callback){
   var sql = "SELECT count(*) as total FROM question";
