@@ -7,7 +7,7 @@ questionCaver.putReward = async function(_address, _privateKey, _value){
 
     var payerValue = Number(_value)*0.001;
     var value = Number(_value)*0.999;
-    
+
     var { rawTransaction: senderFeeRawTransaction } = await cav.caver.klay.accounts.signTransaction({
         type: 'FEE_DELEGATED_VALUE_TRANSFER',
         from: _address,

@@ -649,7 +649,7 @@ db.countQuestionNum = function(u_email, callback){
       }
     });
 };
-
+/*
 db.selectMyQuestion = function (u_email, callback){
   var params = [u_email];
   var sql = "SELECT question.question_title, question.question_content, question.klay, category.category, question.q_selected FROM question INNER JOIN category ON question.email = ?  AND question.category_num = category.category_num";
@@ -661,6 +661,44 @@ db.selectMyQuestion = function (u_email, callback){
       else {
           return callback(result); // 해당 유저의 질문을 제목,내용,클레이양, 카테고리, 상태를 리스트로 반환 -> 상태는 밑에 부연 설명
       } // 질문 상태 0: 답변 진행중, 1: Like 진행중, 2: 답변 채택
+  });
+};
+
+db.myQuestionList = function (session_id, callback) {
+    db.countEmail(session_id, (rows1)=>{
+      if(rows1){
+            db.selectEmail(session_id, (rows2)=>{
+              if(rows2){
+                    db.countQuestionNum(rows2[0].email, (rows3)=>{
+                      if(rows3){
+                            db.selectMyQuestion(rows3[0].email, (rows4)=>{
+                              return callback(rows4);
+                            });
+                        }
+                        else {
+                            return callback(false);
+                        }
+                    });
+                }
+            });
+        }
+        else {
+            return callback(false);
+        }
+    });
+}; // NotUse
+*/
+db.selectMyQuestion = function (u_email, callback){
+  var params = [u_email];
+  var sql = "SELECT question_title, klay, time, question_num  FROM question WHERE email = ?";
+  db.klaytndb.query(sql, params, function (err, result, fields) {
+      if (err) {
+          console.log(err);
+          return callback(false);
+      }
+      else {
+          return callback(result); // 해당 유저의 질문을 제목, 클레이양, 시간, 질문 번호를 리스트로 반환
+      }
   });
 };
 
@@ -779,16 +817,16 @@ db.countAnswerNum = function(u_email, callback){
     });
 };
 
-db.myLikeResult = function(u_email, answer_num, callback){
-  var params = [u_email, answer_num];
-  var sql = "SELECT l1.question_num, l1.answer_num, count(l2.answer_num) as like_num FROM userLike as l1 JOIN userLike as l2 ON l1.email = ? AND l2.answer_num = ?";
+db.myLikeResult = function(question_num, answer_num, callback){
+  var params = [question_num, answer_num];
+  var sql = "SELECT question.question_title, answer.answer_content, answer.like_count as like_num FROM question INNER JOIN answer ON question.question_num = ? AND answer.answer_num = ?";
   db.klaytndb.query(sql, params, function (err, result, fields) {
       if (err) {
           console.log(err);
           return callback(false);
       }
       else {
-          return callback(result); // 질문 번호, 답변 번호, 라이크 수 반환
+          return callback(result); // 질문 제목, 답변 내용, 라이크 수 반환
       }
   });
 };
@@ -804,10 +842,17 @@ db.myLikeList = function (session_id, callback) {
                               if(rows4){
                                     db.countAnswerNum(rows4[0].email, (rows5)=>{
                                       if(rows5){
-                                            db.myLikeResult(rows5[0].email, rows5[0].answer_num, (rows6)=>{
+                                        db.selectQuestionNum(row5[0].answer_num, (row7)=>{
+                                          if(row7){
+                                            db.myLikeResult(row7[0].question_num, rows5[0].answer_num, (rows6)=>{
                                               return callback(rows6);
                                             });
-                                        }
+                                          }
+                                          else{
+                                            return callback(false);
+                                          }
+                                          });
+                                          }
                                         else {
                                             return callback(false);
                                         }
@@ -980,6 +1025,20 @@ db.countIsSelected = function (question_num, callback) {
     });
 };
 
+db.selectQuestionNum = function (answer_num, callback) {
+  var params = [answer_num];
+  var sql = "SELECT question_num FROM answer WHERE answer_num = ?";
+  db.klaytndb.query(sql, params, function (err, result, fields) {
+      if (err) {
+          console.log(err);
+          return callback(false);
+      }
+      else {
+          return callback(result);
+      }
+  });
+};
+
 db.selectQuestionNoAnswer = function (question_num, callback) {
   var sql = "SELECT question.question_num, question.email, question.question_title, category.category, question.question_content, question.klay, question.time FROM question INNER JOIN category ON question.question_num = ?  AND question.category_num = category.category_num";
   var params = [question_num];
@@ -996,18 +1055,19 @@ db.selectQuestionNoAnswer = function (question_num, callback) {
 };
 
 db.selectQuestionAnswer = function(question_num, callback){
-  var sql = "SELECT question.question_num, question.email, question.question_title, category.category, question.question_content, question.klay, question.time, answer.answer_num, answer.email, answer.answer_content, answer.is_selected FROM question INNER JOIN answer ON question.question_num = ? AND question.question_num = answer.question_num INNER JOIN category ON question.category_num = category.category_num";
+  var sql = "SELECT question.question_num, question.email question_email, question.question_title, category.category, question.question_content, question.klay, question.time, answer.answer_num, answer.email answer_email, answer.answer_content, answer.is_selected, answer.like_count FROM question INNER JOIN answer ON question.question_num = ? AND question.question_num = answer.question_num INNER JOIN category ON question.category_num = category.category_num ORDER BY answer.like_count DESC";
   var params = [question_num];
-  db.klaytndb.query(sql, params, function (err, result, fields) {
+  db.klaytndb.query(sql, params, function (err, results, fields) {
       if (err) {
           console.log(err);
           return callback(false);
       }
       else {
-          return callback(result); // 질문 번호, 질문자 이메일, 질문 제목, 카테고리, 질문 내용, klay, 질문 시간, 답변 번호, 답변자 이메일, 답변 내용, 답변 채택 여부 반환
+        return callback(results); // 질문 번호, 질문자 이메일, 질문 제목, 카테고리, 질문 내용, klay, 질문 시간, 답변 번호, 답변자 이메일, 답변 내용, 답변 채택 여부, 답변 별 Like갯수 반환
       }
   });
 };
+
 
 db.showQuestion = function (question_num, callback) {
     db.countQuestionNumQN(question_num, (rows1)=>{
@@ -1101,8 +1161,8 @@ db.selectQuestionCategoryKlay = function (question_state, keyword, category, cal
   });
 };
 
-db.selectQuestionTimeLast = function (question_state, keyword, category, callback) {
-  var sql = "SELECT question.question_num, question.question_title, question.email, category.category, question.klay, question.time FROM question INNER JOIN category ON question.category_num = category.category_num AND question.q_selected = ? AND question.question_content LIKE ?"; //
+db.selectQuestionTimeLast = function (question_state, keyword, callback) {
+  var sql = "SELECT question.question_num, question.question_title, question.email, category.category, question.klay, question.time FROM question INNER JOIN category ON question.category_num = category.category_num AND question.q_selected = ? AND question.question_content LIKE ?";
   var params = [question_state, keyword];
   db.klaytndb.query(sql, params, function (err, result, fields) {
       if (err) {
@@ -1115,7 +1175,30 @@ db.selectQuestionTimeLast = function (question_state, keyword, category, callbac
   });
 };
 
-db.selectQuestionTimeFirst = function (question_state, keyword, category, callback) {
+db.incLike = function(answer_num, callback){
+  var sql = "SELECT like_count FROM answer WHERE answer_num = ?";
+  var params = [answer_num];
+  db.klaytndb.query(sql, params, function (err, result, fields) {
+      if (err) {
+          return callback(false);
+      }
+      else {
+        var lc = result[0].like_count + 1;
+        var sql1 = "UPDATE answer SET like_count = ? WHERE answer_num = ?";
+        var params1 = [lc, answer_num];
+        db.klaytndb.query(sql1, params1, function (err, result, fields) {
+            if (err) {
+                return callback(false);
+            }
+            else {
+              return callback(true);
+            }
+        });
+      }
+  });
+};
+
+db.selectQuestionTimeFirst = function (question_state, keyword, callback) {
   var sql = "SELECT question.question_num, question.question_title, question.email, category.category, question.klay, question.time FROM question INNER JOIN category ON question.category_num = category.category_num AND question.q_selected = ? AND question.question_content LIKE ? ORDER BY question.time DESC";
   var params = [question_state, keyword];
   db.klaytndb.query(sql, params, function (err, result, fields) {
@@ -1129,7 +1212,7 @@ db.selectQuestionTimeFirst = function (question_state, keyword, category, callba
   });
 };
 
-db.selectQuestionKlay = function (question_state, keyword, category, callback) {
+db.selectQuestionKlay = function (question_state, keyword, callback) {
   var sql = "SELECT question.question_num, question.question_title, question.email, category.category, question.klay, question.time FROM question INNER JOIN category ON question.category_num = category.category_num AND question.q_selected = ? AND question.question_content LIKE ? ORDER BY question.klay DESC";
   var params = [question_state, keyword];
   db.klaytndb.query(sql, params, function (err, result, fields) {
@@ -1362,7 +1445,11 @@ db.insertLikeFirst = function (session_id, question_num, answer_num, callback) {
             db.selectEmail(session_id, (rows3)=>{
               if(rows3){
                 db.insertLike(question_num, answer_num, rows3[0].email, (rows4)=>{
-                  return callback(rows4);
+                  if(rows4){
+                    db.incLike(answer_num, (row5)=>{
+                      return callback(row5);
+                    })
+                  }
                 });
               }
             });
@@ -1377,6 +1464,7 @@ db.insertLikeFirst = function (session_id, question_num, answer_num, callback) {
       }
     });
 }; // use
+
 
 db.updateQuestionStateSelected = function (question_num, callback) {
   var sql = "UPDATE question SET q_selected = 2 WHERE question_num = ?";
@@ -1552,6 +1640,9 @@ db.selectAnswerLike = function (answer_num, callback) {
               return callback(false);
             }
           });
+        }
+        else{
+          return callback(false);
         }
       });
     }
