@@ -11,12 +11,27 @@ var app = express();
 
 var v1 = require('./v1/v1');
 var caver = require('./Klaytn');
+var cors = require('cors');
 
 // initialize caver
 caver.initialize();
 
 // view engine setup
-app.set('views', path.join(__dirname, 'views'));
+//app.use(''cors());
+/*
+var whitelist = ['http://localhost:8080', 'http://15.164.129.118:3000']
+
+var corsOptions = {
+  origin: function(origin, callback){
+  var isWhitelisted = whitelist.indexOf(origin) !== -1;
+  callback(null, isWhitelisted);
+  // callback expects two parameters: error and options
+  },
+  credentials:true
+};*/
+//app.use(cors('https://klaytnsori2019.s3-website.ap-northeast-2.amazonaws.com/login'));
+app.use(cors('http://15.164.129.118:3000'));
+app.set('views', [path.join(__dirname, 'views'), path.join(__dirname, 'dist')]);
 app.set('view engine', 'pug');
 
 app.use(logger('dev'));
@@ -28,6 +43,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 
+app.use('/main', express.static('public'))
+//app.use('/main', express.static('../klaytnsori_client/src/page/MainPage'))
 app.use('/v1',v1);
 
 // catch 404 and forward to error handler
@@ -45,7 +62,5 @@ app.use(function(err, req, res, next) {
   res.status(err.status || 500);
   res.render('error');
 });
-app.listen(3001, function(){
-  console.log('Server is running...');
-});
+
 module.exports = app;

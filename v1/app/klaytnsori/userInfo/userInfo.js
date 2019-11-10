@@ -1,17 +1,18 @@
 var express = require('express');
-var mypage = express.Router();
+var userInfo = express.Router();
 var result = require('./../../../../result');
 var caver = require('../caver/MypageCaver.js');
 var db = require('./../../../../klaytndb.js');
+var translateTime = require('./../translateTime.js');
 
 /*
-*mypage API
+*userInfo API
 *Request
 *session_id : Get user's information at DB
 *Response
 *account_address : Return user's account address from DB.
 */
-mypage.get('/',function(req,res,next){
+userInfo.get('/',function(req,res,next){
   var isValid = true;
   var validationError = {
     name : 'ValidationError',
@@ -28,7 +29,7 @@ mypage.get('/',function(req,res,next){
 }, function(req, res){
   var userSession = req.query.session_id;
   //DB에서 session_id를 받아서 해당 유저의 account address 반환
-  db.noname(userSession, (rows)=>{
+  db.getWalletaddressAndPK(userSession, (rows)=>{
     if(rows==false){
       var dbError = {
           "name": 'DB',
@@ -37,11 +38,13 @@ mypage.get('/',function(req,res,next){
       dbError.errors.db = { message: 'Cannot find user in userSession table' };
       return res.json(result.successFalse(dbError));
     }
-    var userAccount = rows[0].wallet_address;
-    var data = {
-      account_address : userAccount
-    };
-    return res.json(result.successTrue(data));
+    else{
+      var userAccount = rows[0].wallet_address;
+      var data = {
+        account_address : userAccount
+      };
+      return res.json(result.successTrue(data));
+    }
   });
 });
 /*
@@ -54,7 +57,7 @@ mypage.get('/',function(req,res,next){
 *trans_content : User send klay content for each
 *recipient_address User send to Where for each
 */
-mypage.get('/transaction', function(req,res,next){
+userInfo.get('/transaction', function(req,res,next){
   var isValid = true;
   var validationError = {
     name : 'ValidationError',
@@ -88,10 +91,10 @@ mypage.get('/transaction', function(req,res,next){
       }
       caver.showTransactions(transactionList).then((transactions)=>{
         for(var i in transactions){
-          var transactionHexTime = transactions[j].timestamp;
+          var transactionHexTime = transactions[i].timestamp;
           var transactionUnixTime = parseInt(transactionHexTime, 16);
-          var transactionDate = new Date(transactionUnixTime*1000+9*60*60*1000);
-          transactions[i].timestamp = transactionDate;
+          transactions[i].timestamp = translateTime.translateDate(transactionUnixTime);
+          transactions[i].value = caver.translateKlay(parseInt(transactions[i].value, 16));
         }
         return res.json(result.successTrue(transactions));
       });
@@ -104,13 +107,14 @@ mypage.get('/transaction', function(req,res,next){
 *Request
 *session_id : Get user's qusetion information at DB
 *Response
+*question_id : question number
 *question_title : User inserted question title
 *question_content : User inserted question content
 *question_klay : User inserted question klay amount
 *category : User inserted question category
 *question_state : Present state
 */
-mypage.get('/my_question_list', function(req,res,next){
+userInfo.get('/my_question_list', function(req,res,next){
   var isValid = true;
   var validationError = {
     name : 'ValidationError',
@@ -125,7 +129,7 @@ mypage.get('/my_question_list', function(req,res,next){
 }, function(req,res,next){
   var userSession = req.query.session_id;
   //DB에서 세션아이디로 해당 유저의 질문을 제목,내용,클레이양, 카테고리, 상태를 리스트로 반환
-  db.my_question_list(userSession, (rows)=>{
+  db.myQuestionList(userSession, (rows)=>{
     if(rows == false){
       var dbError = {
           "name": 'DB',
@@ -135,6 +139,10 @@ mypage.get('/my_question_list', function(req,res,next){
       return res.json(result.successFalse(dbError));
     }
     else{
+      for(var i in rows){
+        var rowsTime = rows[i].time;
+        rows[i].time = translateTime.translateDate(rowsTime/1000);
+      }
       return res.json(result.successTrue(rows));
     }
   });
@@ -149,7 +157,7 @@ mypage.get('/my_question_list', function(req,res,next){
 *question_state : Question's state that user inserted answer
 *answer_content : Qusetion's answer content that user inserted
 */
-mypage.get('/my_answer_list', function(req,res,next){
+userInfo.get('/my_answer_list', function(req,res,next){
   var isValid = true;
   var validationError = {
     name : 'ValidationError',
@@ -166,7 +174,7 @@ mypage.get('/my_answer_list', function(req,res,next){
 }, function(req,res,next){
   var userSession = req.query.session_id;
   //DB에서 세션아이디로 해당 유저의 질문을 제목, 상태, 답변 내용을 리스트로 반환
-  db.my_answer_list(userSession, (rows)=>{
+  db.myAnswerList(userSession, (rows)=>{
     if(rows == false){
       var dbError = {
           "name": 'DB',
@@ -190,7 +198,7 @@ mypage.get('/my_answer_list', function(req,res,next){
 *answer_content : Qusetion's answer content that user inserted
 *like_count : Question's like amount
 */
-mypage.get('/my_like_list', function(req,res,next){
+userInfo.get('/my_like_list', function(req,res,next){
   var isValid = true;
   var validationError = {
     name : 'ValidationError',
@@ -207,7 +215,7 @@ mypage.get('/my_like_list', function(req,res,next){
 }, function(req,res,next){
   var userSession = req.query.session_id;
   //DB에서 세션아이디로 해당 유저의 질문 제목, 답변 내용, like수를 리스트로 반
-  db.my_like_list(userSession, (rows)=>{
+  db.myLikeList(userSession, (rows)=>{
     if(rows == false){
       var dbError = {
           "name": 'DB',
@@ -229,7 +237,7 @@ mypage.get('/my_like_list', function(req,res,next){
 *Response
 *klay : User's klay amount
 */
-mypage.get('/my_remain_klay', function(req,res,next){
+userInfo.get('/my_remain_klay', function(req,res,next){
   var isValid = true;
   var validationError = {
     name : 'ValidationError',
@@ -245,7 +253,7 @@ mypage.get('/my_remain_klay', function(req,res,next){
   else next();
 }, function(req,res,next){
   var userSession = req.query.session_id;
-  db.my_remain_klay(userSession,(rows)=>{
+  db.myRemainKlay(userSession,(rows)=>{
     if(rows == false){
       var dbError = {
           "name": 'DB',
@@ -266,4 +274,4 @@ mypage.get('/my_remain_klay', function(req,res,next){
   });
 });
 
-module.exports = mypage;
+module.exports = userInfo;

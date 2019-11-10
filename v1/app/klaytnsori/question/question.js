@@ -3,6 +3,7 @@ var question = express.Router();
 var result = require('./../../../../result');
 var caver = require('../caver/QuestionCaver.js');
 var db = require('./../../../../klaytndb.js');
+var translateTime = require('./../translateTime.js');
 
 /*
 *category API
@@ -13,7 +14,7 @@ var db = require('./../../../../klaytndb.js');
 */
 question.get('/category', function(req,res,next){
   //DB에서 카테고리 정보 리스트 형태로 반환.
-  db.category((rows)=>{
+  db.selectAllCategory((rows)=>{
     if(rows == false){
       var dbError = {
           "name": 'DB',
@@ -32,7 +33,7 @@ question.get('/category', function(req,res,next){
 *session_id : Get user's information at DB
 *question_title : Set question_title in DB
 *question_klay : Set question_klay amount in DB
-*qusetion_content : Set question_content in DB
+*question_content : Set question_content in DB
 *category : Set question_category in DB
 *Response
 *question_id : if success to insert in DB, return question_id. It will use show_question.
@@ -96,10 +97,10 @@ question.post('/insert_question', function(req,res,next){
         var transactionHash = receipt.transactionHash;
         var hexKlay = receipt.value;
         var questionRemainKlay = parseInt(hexKlay,16)/1000000000000000000;
-        db.insert_question2(userSession, transactionHash, (rows)=>{
+        db.insertQuestionSecond(userSession, transactionHash, (rows)=>{
           var dbOk1 = rows;
           if(dbOk1){
-            db.insert_question1(userSession, questionTitle, questionRemainKlay, questionContent, questionCategory, transactionDate, (rows)=>{
+            db.insertQuestionFirst(userSession, questionTitle, questionRemainKlay, questionContent, questionCategory, transactionDate, (rows)=>{
               var questionId = rows[0].max;
               var data = {
                 question_id : questionId
@@ -151,7 +152,7 @@ question.get('/show_question',function(req,res,next){
 },function(req,res,next){
   var questionNum = req.query.question_id;
   //DB에서 질문 넘버로 질문 제목,클레이,내용,시간,질문자,상태,카테고리 리턴
-  db.show_question(questionNum, (rows)=>{
+  db.showQuestion(questionNum, (rows)=>{
     if(rows == false){
       var dbError = {
           "name": 'DB',
@@ -161,6 +162,10 @@ question.get('/show_question',function(req,res,next){
       return res.json(result.successFalse(dbError));
     }
     else{
+      for(var i in rows){
+        var rowsTime = rows[i].time;
+        rows[i].time = translateTime.translateDate(rowsTime/1000);
+      }
       return res.json(result.successTrue(rows));
     }
   });
@@ -225,7 +230,7 @@ question.get('/question_list',function(req,res,next){
     var questionKeyword = string + req.query.keyword + string;
   }
 
-  db.questionList(questionState, currentTime, questionDefault, questionSort, questionKeyword, questionCategory, (rows)=>{
+  db.showQuestionList(questionState, currentTime, questionDefault, questionSort, questionKeyword, questionCategory, (rows)=>{
     if(rows == false){
       var dbError = {
           "name": 'DB',
@@ -235,6 +240,10 @@ question.get('/question_list',function(req,res,next){
       return res.json(result.successFalse(dbError));
     }
     else{
+      for(var i in rows){
+        var rowsTime = rows[i].time;
+        rows[i].time = translateTime.translateDate(rowsTime/1000);
+      }
       return res.json(result.successTrue(rows));
     }
   });
@@ -278,7 +287,7 @@ question.post('/insert_answer', function(req,res,next){
   var answerContent = req.body.answer_content;
   var questionNum = req.body.question_id;
   //DB에서 해당 질문 번호에 답변과 답변자 이메일 넣기.
-  db.insertAnswer(userSession, answerContent, questionNum, (rows)=>{
+  db.insertAnswerFirst(userSession, answerContent, questionNum, (rows)=>{
     var dbOk = rows;
     if(dbOk){
       var data = {message : 'Success to insert answer'};
@@ -330,7 +339,7 @@ question.post('/insert_like', function(req,res,next){
   var questionNum = req.body.question_id;
   var answerNum = req.body.answer_id;
   //DB에 해당 질문 번호와 답변 번호와 유저 이메일을 테이블에 저장.
-  db.insertLike(userSession, questionNum, answerNum, (rows)=>{
+  db.insertLikeFirst(userSession, questionNum, answerNum, (rows)=>{
     var dbOk = rows;
     if(dbOk){
       var data = {message : 'Success to add like'};
@@ -385,7 +394,7 @@ question.post('/select_answer',function(req,res,next){
   var questionNum = req.body.question_id;
   var answerNum = req.body.answer_id;
   var selectEnable = req.body.select_enable;
-  db.selectAnswerOne(questionNum, answerNum, (rows)=>{
+  db.selectAnswer(questionNum, answerNum, (rows)=>{
     if(rows == false){
       var dbError = {
           "name": 'DB',
@@ -402,23 +411,10 @@ question.post('/select_answer',function(req,res,next){
       questionKlay = String(questionKlay);
       caver.getReward(answerAccount, answerPrivatekey, questionerAccount, questionKlay).then((receipt)=>{
         var txHash = receipt.transactionHash;
-        db.registerTransaction(txHash, answerAccount, (rows)=>{
+        db.insertTransaction(txHash, answerAccount, (rows)=>{
           var dbOk = rows;
           if(dbOk){
-            db.registerTransaction(txHash, questionerAccount,(rows)=>{
-              var dbOk1 = rows;
-              if(dbOk1){
-                return res.json(result.successTrue(dbOk1));
-              }
-              else{
-                var dbError = {
-                    "name": 'DB',
-                    "errors": {}
-                };
-                dbError.errors.db = { message: 'Cannot insert information in transaction table' };
-                return res.json(result.successFalse(dbError));
-              }
-            });
+            return res.json(result.successTrue(dbOk));
           }
           else{
             var dbError = {
@@ -437,20 +433,10 @@ question.post('/select_answer',function(req,res,next){
       console.log(answerKlay);
       caver.getReward(answerAccount, answerPrivatekey, questionerAccount, answerKlay).then((receipt)=>{
         var txHash = receipt.transactionHash;
-        db.registerTransaction(txHash, answerAccount, (rows)=>{
+        db.insertTransaction(txHash, answerAccount, (rows)=>{
           var dbOk = rows;
           if(dbOk){
-            db.registerTransaction(txHash, questionerAccount,(rows)=>{
-              var dbOk1 = rows;
-              if(!dbOk1){
-                var dbError = {
-                    "name": 'DB',
-                    "errors": {}
-                };
-                dbError.errors.db = { message: 'Cannot insert information in transaction table' };
-                return res.json(result.successFalse(dbError));
-              }
-            });
+            return res.json(result.successTrue(dbOk));
           }
           else{
             var dbError = {
@@ -477,7 +463,7 @@ question.post('/select_answer',function(req,res,next){
         for(var i in rows){
           caver.getReward(rows[i].wallet_address, rows[i].private_key, questionerAccount, likeKlay).then((receipt)=>{
             var txHash = receipt.transactionHash;
-            db.registerTransaction(txHash, rows[i].wallet_address, (rows)=>{
+            db.insertTransaction(txHash, rows[i].wallet_address, (rows)=>{
               var dbOk = rows;
               if(!dbOk){
                 var dbError = {
